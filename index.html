@@ -175,19 +175,22 @@
     @media(max-width:520px){.filter-panel{padding:10px 16px 11px}}
     .builder-status{margin:0 0 10px;padding:9px 11px;border-radius:8px;background:#fbf4dd;border:1px solid #e4d093;font-size:12px;line-height:1.6;color:#7a5a12}
     .prompt-preview{min-height:120px;border:1px solid #bdc7ae!important;border-radius:11px;background:#f1f5e9!important;padding:14px;line-height:1.8;font-size:14px;resize:vertical}
-    .topbar .header-inner{grid-template-columns:minmax(0,1fr) minmax(220px,480px) minmax(0,1fr);align-items:center;gap:18px;padding:15px 26px 12px}
+    .topbar .header-inner{grid-template-columns:minmax(0,1fr) minmax(220px,520px) minmax(0,1fr);align-items:center;gap:18px;padding:12px 26px 10px}
     .topbar .header-actions{gap:14px}
     .topbar .header-actions .text-button{white-space:nowrap}
     .header-left{display:flex;align-items:center;gap:16px;min-width:0}
     .topbar .header-actions{justify-self:end}
     .topbar .header-notes{gap:14px}
-    .topbar .header-notes .mode-button{border:1px solid var(--mumu-rule);border-radius:8px;padding:8px 12px}
-    .topbar .header-notes .mode-button[aria-pressed="true"]{border-color:var(--mumu-accent)}
-    .topbar .search.search-compact{width:100%;min-width:0;max-width:600px;margin:0 auto;gap:11px;padding:12px 17px;border-radius:11px}
-    .topbar .search.search-compact input{font-size:15px}
+    .topbar .header-left .mode-button{flex-shrink:0;min-height:32px;border:1px solid var(--mumu-rule);border-radius:8px;padding:5px 10px;background:transparent;color:var(--mumu-ink);font-family:var(--mumu-body);font-size:12px;font-weight:800;white-space:nowrap}
+    .topbar .header-left .mode-button:hover{background:var(--mumu-surface-2)}
+    .topbar .header-left .mode-button[aria-pressed="true"]{background:var(--mumu-accent);border-color:var(--mumu-accent);color:var(--mumu-accent-ink)}
+    .topbar .header-actions .mode-button[aria-pressed="true"]{border-color:var(--mumu-accent)}
+    .topbar .search.search-compact{width:100%;min-width:0;max-width:520px;height:38px;margin:0 auto;gap:9px;padding:0 13px;border-radius:9px}
+    .topbar .search.search-compact input{font-size:14px;padding:0}
     .topbar .search.search-compact .search-hint{display:inline}
-    .topbar .search.search-compact svg{width:19px;height:19px}
+    .topbar .search.search-compact svg{width:17px;height:17px}
     .topbar .filter-panel{padding:0 20px 13px;gap:14px;border:0}
+    .topbar .filter-panel:has(.sort[hidden]){grid-template-columns:minmax(0,1fr)}
     .categories{gap:3px}
     .chip{min-height:29px;padding:5px 7px;font-size:12px;letter-spacing:-.3px}
     .chip span,.subchip span{margin-left:2px;font-size:9px}
@@ -198,7 +201,7 @@
       .topbar .header-inner{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:14px 22px 10px}
       .header-left{order:1;flex:1 1 auto;gap:16px}
       .topbar .header-actions{order:2;margin-left:auto;justify-self:auto}
-      .topbar .search.search-compact{order:3;flex:1 1 100%;padding:11px 15px}
+      .topbar .search.search-compact{order:3;flex:1 1 100%;height:38px;padding:0 13px}
       .topbar .filter-panel{padding:0 18px 12px}
     }
     @media(max-width:520px){
@@ -218,9 +221,7 @@
         <span class="wordmark">MuMu <b>Prompts</b></span>
         
       </button>
-      <nav class="header-notes" aria-label="보기">
-        <button class="mode-button" id="saved-nav" data-action="saved" aria-pressed="false">보관함 <span id="saved-count">0</span></button>
-      </nav>
+      <button class="mode-button" id="saved-nav" data-action="saved" aria-pressed="false">보관함 <span id="saved-count">0</span></button>
       </div>
       <label class="search search-command search-compact">
         <span id="search-icon"></span>
@@ -231,14 +232,13 @@
       </label>
       <div class="header-actions">
         <button class="text-button" data-action="notice">사용법</button>
-        <button class="text-button" data-action="about">소개</button>
-        <button class="pill" id="admin-nav" data-action="admin"><span data-icon="lock"></span><span class="backup-label">관리자</span></button><button class="pill" id="backup-nav" data-action="backup"><span data-icon="download"></span><span class="backup-label">백업</span></button>
-        <button class="pill yellow" id="add-nav" data-action="add"><span data-icon="plus"></span>추가</button>
+        <button class="pill" id="admin-nav" data-action="admin"><span data-icon="lock"></span><span class="backup-label">관리자</span></button><button class="pill admin-only" id="backup-nav" data-action="backup" hidden><span data-icon="download"></span><span class="backup-label">백업</span></button>
+        <button class="pill yellow admin-only" id="add-nav" data-action="add" hidden><span data-icon="plus"></span>추가</button>
       </div>
     </div>
     <section class="filter-panel" aria-label="프롬프트 탐색">
     <div class="filter-navigation"><div id="categories" class="categories"></div><div id="subcategories" class="subcategories" hidden aria-label="하위 메뉴"></div></div>
-    <div class="sort" aria-label="정렬"><button data-sort="latest" class="active" aria-pressed="true">최근 추가</button><button data-sort="popular" aria-pressed="false" title="이 PC에서 많이 복사한 순서">많이 사용</button></div>
+    <div class="sort admin-only" aria-label="정렬" hidden><button data-sort="latest" class="active" aria-pressed="true">최근 추가</button><button data-sort="popular" aria-pressed="false" title="이 PC에서 많이 복사한 순서">많이 사용</button></div>
   </section>
   </header>
   <main id="main">
@@ -258,8 +258,8 @@
     <div id="form-error" class="form-error" role="alert" hidden></div><div class="actions"><button type="submit" class="primary" id="form-submit"><span data-icon="plus"></span>보관함에 추가</button><button type="button" class="secondary" data-action="close-editor">취소</button></div>
   </form></div></dialog>
   <dialog id="admin" class="compact-modal" aria-labelledby="admin-title"><div class="modal-header"><h2 id="admin-title">관리자</h2><button class="icon-button" data-action="close-admin" aria-label="관리자 창 닫기"><span data-icon="x"></span></button></div><div class="modal-body"><p class="notice">이 보관함에 프롬프트를 <strong>추가·수정·삭제할 수 있는 사람은 관리자 한 명</strong>입니다. 다른 분들은 로그인 없이 프롬프트를 열어 복사해 쓰실 수 있습니다.</p><div class="actions"><button class="primary" id="google-login">구글 계정으로 로그인</button></div><div class="form-error" id="admin-error" role="alert" hidden></div><p class="small-muted" id="admin-note" style="margin-top:16px"></p></div></dialog>
-  <dialog id="info" class="compact-modal" aria-labelledby="info-title"><div class="modal-header"><h2 id="info-title">이용 안내</h2><button class="icon-button" data-action="close-info" aria-label="안내 닫기"><span data-icon="x"></span></button></div><div id="info-body" class="modal-body"></div></dialog>
-  <dialog id="backup" class="compact-modal" aria-labelledby="backup-title"><div class="modal-header"><h2 id="backup-title">자료 백업 · 복원</h2><button class="icon-button" data-action="close-backup" aria-label="백업 창 닫기"><span data-icon="x"></span></button></div><div class="modal-body"><p class="notice">현재 자료를 <strong>구글 드라이브</strong>에 백업합니다. 관리자 계정 드라이브의 <strong>MuMu Prompts 백업</strong> 폴더에 저장되며, 이 앱이 만든 파일만 접근합니다.</p><div class="actions"><button class="primary" id="drive-backup">드라이브에 백업하기</button><button class="secondary" id="drive-refresh">목록 새로고침</button></div><div class="form-error" id="drive-error" role="alert" hidden></div><h3>드라이브에 저장된 백업</h3><div id="drive-list" class="drive-list"><p class="small-muted">관리자로 로그인하면 백업 목록이 표시됩니다.</p></div><details class="file-fallback"><summary>파일로 저장·불러오기</summary><div class="backup-option"><span data-icon="file"></span><div><strong>앱과 자료 함께 저장</strong><p>이 파일 하나를 열면 현재 자료가 담긴 앱이 실행됩니다.</p></div><button class="primary" data-action="export-html">HTML 저장</button></div><div class="backup-option"><span data-icon="download"></span><div><strong>자료만 백업</strong><p>텍스트 목록(items)과 이미지 자산(images)이 나뉜 JSON 파일입니다.</p></div><button class="secondary" data-action="export-json">JSON 저장</button></div><div id="import-block"><h3>백업 파일 불러오기</h3><p class="small-muted">이 앱에서 저장한 JSON 파일을 선택하세요.</p><div class="radio-row"><label><input type="radio" name="import-mode" value="merge" checked>기존 자료에 합치기</label><label><input type="radio" name="import-mode" value="replace">백업 자료로 교체</label></div><input id="import-file" type="file" accept="application/json,.json" class="form-control" aria-label="JSON 백업 파일 선택"><div id="import-error" class="form-error" role="alert" hidden></div></div></details><p id="backup-stats" class="small-muted" style="margin-top:18px"></p></div></dialog>
+  <dialog id="info" class="compact-modal" aria-labelledby="info-title"><div class="modal-header"><h2 id="info-title">사용법</h2><button class="icon-button" data-action="close-info" aria-label="안내 닫기"><span data-icon="x"></span></button></div><div id="info-body" class="modal-body"></div></dialog>
+  <dialog id="backup" class="compact-modal" aria-labelledby="backup-title"><div class="modal-header"><h2 id="backup-title">자료 백업 · 복원</h2><button class="icon-button" data-action="close-backup" aria-label="백업 창 닫기"><span data-icon="x"></span></button></div><div class="modal-body"><p class="notice">현재 자료를 <strong>구글 드라이브</strong>에 백업합니다. 관리자 계정 드라이브의 <strong>MuMu Prompts 백업</strong> 폴더에 저장되며, 이 앱이 만든 파일만 접근합니다.</p><div class="actions"><button class="primary" id="drive-backup">드라이브에 백업하기</button><button class="secondary" id="drive-refresh">목록 새로고침</button></div><div class="form-error" id="drive-error" role="alert" hidden></div><h3>드라이브에 저장된 백업</h3><div id="drive-list" class="drive-list"><p class="small-muted">관리자로 로그인하면 백업 목록이 표시됩니다.</p></div><details class="file-fallback"><summary>파일로 저장·불러오기</summary><div class="backup-option"><span data-icon="file"></span><div><strong>앱과 자료 함께 저장</strong><p>이 파일 하나를 열면 현재 자료가 담긴 앱이 실행됩니다.</p></div><button class="primary" data-action="export-html">HTML 저장</button></div><div class="backup-option"><span data-icon="download"></span><div><strong>자료만 백업</strong><p>텍스트 목록(items)과 이미지 자산(images)이 나뉜 JSON 파일입니다.</p></div><button class="secondary" data-action="export-json">JSON 저장</button></div><div id="import-block" hidden><h3>백업 파일 불러오기</h3><p class="small-muted">이 앱에서 저장한 JSON 파일을 선택하세요.</p><div class="radio-row"><label><input type="radio" name="import-mode" value="merge" checked>기존 자료에 합치기</label><label><input type="radio" name="import-mode" value="replace">백업 자료로 교체</label></div><input id="import-file" type="file" accept="application/json,.json" class="form-control" aria-label="JSON 백업 파일 선택"><div id="import-error" class="form-error" role="alert" hidden></div></div></details><p id="backup-stats" class="small-muted" style="margin-top:18px"></p></div></dialog>
   <dialog id="confirm" class="compact-modal" aria-labelledby="confirm-title"><div class="modal-header"><h2 id="confirm-title">확인</h2></div><div class="confirm-body"><p id="confirm-message"></p><div class="actions"><button class="secondary" id="confirm-no">취소</button><button class="primary" id="confirm-yes">확인</button></div></div></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
   <noscript><p style="padding:30px">이 앱을 사용하려면 브라우저에서 JavaScript를 허용해주세요.</p></noscript>
@@ -367,7 +367,7 @@ const visible=C.filter(state.items,filter);$('#loading').hidden=true;
         const noData=filter.saved?!state.items.length:!state.items.some(i=>i.kind===filter.kind);$('#empty-title').textContent=noData?'첫 프롬프트를 추가해보세요.':filter.saved&&!source.length?'보관함이 비어 있습니다.':'검색 결과가 없습니다.';
         $('#empty-copy').textContent=noData?'이미지와 자주 사용하는 프롬프트를 함께 보관할 수 있습니다.':filter.saved&&!source.length?'카드 오른쪽 위의 북마크를 눌러 모아두세요.':'다른 단어를 검색하거나 필터를 초기화해보세요.';
         $('#empty-action').dataset.action=noData?'add':'clear-filters';$('#empty-action').textContent=noData?'프롬프트 추가':'전체 보기';
-        $('#add-nav').hidden=!isAdmin;$('#import-block').hidden=!isAdmin;$('#admin-nav').setAttribute('aria-pressed',String(isAdmin));$('#admin-nav').querySelector('.backup-label').textContent=isAdmin?'관리자 ON':'관리자';$('#empty-action').hidden=noData&&!isAdmin;$('#storage-warning').hidden=storageMode!=='memory';
+        $('#add-nav').hidden=!isAdmin;$('#backup-nav').hidden=!isAdmin;$('#import-block').hidden=!isAdmin;$('.sort').hidden=!isAdmin;$('#admin-nav').setAttribute('aria-pressed',String(isAdmin));$('#admin-nav').querySelector('.backup-label').textContent=isAdmin?'관리자 ON':'관리자';$('#empty-action').hidden=noData&&!isAdmin;$('#storage-warning').hidden=storageMode!=='memory';
       }
 
       const GOOGLE={
@@ -377,7 +377,7 @@ const visible=C.filter(state.items,filter);$('#loading').hidden=true;
         scope:'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email'
       };
       const sessionKey=dbName+'-session';
-      let isAdmin=false,account=null,accessToken='',tokenClient=null;
+      let isAdmin=false,account=null,accessToken='',tokenClient=null,tokenReject=null;
       async function sha256Hex(text){
         const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));
         return [...new Uint8Array(digest)].map(byte=>byte.toString(16).padStart(2,'0')).join('');
@@ -399,18 +399,19 @@ const visible=C.filter(state.items,filter);$('#loading').hidden=true;
         if(!gisReady())throw Error('구글 로그인 스크립트를 불러오지 못했습니다. 인터넷 연결을 확인하고 새로고침해주세요.');
         tokenClient=google.accounts.oauth2.initTokenClient({
           client_id:GOOGLE.clientId,scope:GOOGLE.scope,callback:()=>{},
-          error_callback:response=>{adminError(response&&response.type==='popup_closed'?'로그인 창이 닫혔습니다. 다시 시도해주세요.':'로그인에 실패했습니다. 다시 시도해주세요.');}
+          error_callback:response=>{const denied=response&&(response.type==='access_denied'||response.error==='access_denied');const message=response&&response.type==='popup_closed'?'로그인 창이 닫혔습니다. 다시 시도해주세요.':denied?'Google OAuth 앱이 테스트 상태라 로그인이 차단되었습니다. Google Cloud Console의 OAuth 동의 화면에서 관리자 계정을 테스트 사용자로 추가한 뒤 다시 시도해주세요.':'로그인에 실패했습니다. 다시 시도해주세요.';adminError(message);const reject=tokenReject;tokenReject=null;reject?.(Error(message));}
         });
         return tokenClient;
       }
       function requestToken(){
         return new Promise((resolve,reject)=>{
-          const client=ensureTokenClient();
+          const client=ensureTokenClient();tokenReject=reject;
           client.callback=response=>{
+            tokenReject=null;
             if(response&&response.access_token)resolve(response);
             else reject(Error('로그인 승인을 받지 못했습니다.'));
           };
-          client.requestAccessToken({prompt:account?'':'consent'});
+          try{client.requestAccessToken({prompt:account?'':'consent'});}catch(error){tokenReject=null;reject(error);}
         });
       }
       async function fetchEmail(token){
@@ -739,8 +740,6 @@ const visible=C.filter(state.items,filter);$('#loading').hidden=true;
       $('#upload-file').addEventListener('change',async ev=>{try{await readImage(ev.target.files[0]);$('#form-error').hidden=true;}catch(error){formError(error);}});$('#remove-upload').addEventListener('click',()=>{uploadImage='';uploadRatio=0;$('#upload-file').value='';editorDirty=true;refreshUpload();});
       ['dragenter','dragover'].forEach(type=>$('#upload-drop').addEventListener(type,ev=>{ev.preventDefault();$('#upload-drop').classList.add('dragging');}));['dragleave','drop'].forEach(type=>$('#upload-drop').addEventListener(type,ev=>{ev.preventDefault();$('#upload-drop').classList.remove('dragging');}));$('#upload-drop').addEventListener('drop',async ev=>{try{await readImage(ev.dataTransfer.files[0]);}catch(error){formError(error);}});
       $('#item-form').addEventListener('submit',async ev=>{ev.preventDefault();if(!requireAdmin())return;const button=$('#form-submit');button.disabled=true;$('#form-error').hidden=true;try{const f=ev.target.elements;const now=Date.now();const item=C.validateItem({id:editorItem?.id||C.uid(),title:f.title.value.trim(),kind:f.kind.value,category:f.category.value,subcategories:C.subcategories(f.subcategories.value),tool:f.tool.value.trim(),template:f.template.value.trim(),description:f.description.value.trim(),tags:C.tags(f.tags.value),image:uploadImage,ratio:uploadRatio||editorItem?.ratio||0,fields:C.fieldsFor(f.template.value,[...builderSeeds,...(editorItem?.fields||[])]),favorite:editorItem?.favorite??false,copies:editorItem?.copies??0,createdAt:editorItem?.createdAt??now,updatedAt:now,sample:editorItem?.sample??false});await commit(items=>{if(editorItem)return items.map(i=>i.id===item.id?{...item,favorite:i.favorite,copies:i.copies}:i);if(items.length>=1000)throw Error('최대 1,000개까지 보관할 수 있습니다.');return [...items,item];});editorDirty=false;$('#editor').close();if(active?.id===item.id){active.dirty=false;await openDetail(item.id);}filter.kind=item.kind;filter.category='전체';filter.subcategory='전체';filter.query='';filter.saved=false;$('#search').value='';render();toast(editorItem?'수정 내용을 저장했습니다.':'프롬프트를 추가했습니다.');}catch(error){formError(error);}finally{button.disabled=false;}});
-      function info(type){$('#info-title').textContent=type==='about'?'MuMu Prompts 소개':'이용 안내';$('#info-body').innerHTML=type==='about'?'<p>이미지 결과물과 프롬프트를 모아두고, 필요한 문구만 바꾸어 다시 쓰는 개인용 보관함입니다.</p><p>MuMu Prompts를 위한 개인용 프롬프트 보관함입니다. 원본 사이트와 연결된 공식 앱은 아닙니다.</p><h3>포함된 자료</h3><p>예제 이미지 6장과 이미지 프롬프트 6개, 글쓰기 템플릿 3개를 이 앱을 위해 별도로 만들었습니다. 원본 사이트의 자료를 수집한 것이 아닙니다.</p><h3>앱에서 할 수 있는 일</h3><p>검색, 카테고리 필터, 즐겨찾기, 프롬프트 조정·복사, 이미지 업로드, 자료 편집·복제·삭제, 백업·복원을 사용할 수 있습니다.</p><p class="notice">이 앱은 프롬프트를 편집하는 도구입니다. AI 모델을 실행하거나 이미지·글을 자동 생성하지 않습니다. 완성된 프롬프트를 복사해 원하는 생성 도구에서 사용하세요.</p>':'<h3>시작하기</h3><ol><li>마음에 드는 카드를 열어주세요.</li><li>입력칸에서 주제, 문구, 스타일 등을 바꿔주세요.</li><li>최종 프롬프트를 복사해 사용하세요.</li><li>수정한 값을 다음에도 쓰려면 <strong>변경 저장</strong>을 눌러주세요.</li></ol><h3>나의 자료 추가</h3><p>상단의 <strong>추가</strong>에서 이미지와 프롬프트를 넣을 수 있습니다. 하위 메뉴에 쉼표로 여러 주제를 입력하면 상위 메뉴 아래에 자동으로 정리됩니다. 원문에 <strong>{{주제}}</strong>처럼 쓴 부분은 상세 화면의 입력칸이 됩니다. 북마크 아이콘을 누르면 보관함에서 모아 볼 수 있습니다.</p><h3>저장과 백업</h3><p>자료는 브라우저 내부에서 텍스트 데이터(items)와 이미지 자산(images)으로 분리해 저장됩니다. 기존 AIKIT Local 형식의 자료는 첫 실행 때 자동으로 새 구조로 옮깁니다.</p><p class="notice">작업을 마친 뒤 <strong>백업 → JSON 저장</strong>을 누르면 items와 images가 분리된 구조로 보관됩니다. 백업 파일은 백업 창에서 다시 복원할 수 있습니다.</p><h3>인터넷 없이 사용</h3><p>설치·로그인·API 키 없이 실행됩니다. 이미지와 글꼴을 외부에서 불러오지 않으며, 입력 내용을 서버로 보내지 않습니다. 인기순은 이 PC에서 복사한 횟수를 기준으로 정렬합니다.</p><p class="small-muted">폰트 사용 정보: 무료 폰트 이용. 별도 폰트 다운로드 없이 기기에 설치된 기본 글꼴을 사용합니다.</p>';
-        $('#info').showModal();}
       function showBackup(){$('#backup-stats').textContent='전체 '+state.items.length+'개 · 저장한 자료 '+state.items.filter(i=>i.favorite).length+'개';$('#import-error').hidden=true;driveError('');$('#drive-backup').disabled=!isAdmin;$('#drive-refresh').disabled=!isAdmin;$('#backup').showModal();refreshDriveList().catch(error=>driveError(error.message||'목록을 불러오지 못했습니다.'));}
       function download(content,name,mime){const blob=new Blob([content],{type:mime});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
       function dateLabel(){return new Date().toISOString().slice(0,10);}
@@ -752,12 +751,17 @@ const visible=C.filter(state.items,filter);$('#loading').hidden=true;
       function clearFilters(){filter.category='전체';filter.subcategory='전체';filter.query='';filter.saved=false;$('#search').value='';render();}
       document.addEventListener('click',async ev=>{const b=ev.target.closest('button');if(!b)return;try{
         if(b.dataset.category){filter.category=b.dataset.category;filter.subcategory='전체';render();return;}if(b.dataset.subcategory){filter.subcategory=b.dataset.subcategory;render();return;}if(b.dataset.sort){filter.sort=b.dataset.sort;render();return;}if(b.dataset.open){await openDetail(b.dataset.open);return;}if(b.dataset.favorite){await favorite(b.dataset.favorite);return;}if(b.hasAttribute('data-detail-favorite')){await favorite(active.id);return;}
-        if(['add','edit','duplicate','delete','save-detail'].includes(b.dataset.action)&&!requireAdmin())return;switch(b.dataset.action){case 'admin':if(!isAdmin)openAdmin();else if(await confirmAction('관리자 모드를 끝낼까요? 다시 쓰려면 구글 계정으로 로그인해야 합니다.','로그아웃','관리자 로그아웃'))googleLogout();break;case 'close-admin':$('#admin').close();break;case 'home':filter.kind='image';clearFilters();window.scrollTo({top:0});break;case 'saved':filter.saved=!filter.saved;filter.category='전체';filter.subcategory='전체';render();break;case 'clear-filters':clearFilters();break;case 'notice':info('notice');break;case 'about':info('about');break;case 'add':openEditor();break;case 'backup':showBackup();break;case 'close-info':$('#info').close();break;case 'close-backup':$('#backup').close();break;case 'close-detail':await closeDetail();break;case 'close-editor':await closeEditor();break;case 'copy':await copyPrompt();break;case 'save-detail':await saveDetail();break;case 'reset-detail':if(active.dirty&&!(await confirmAction('입력값과 원문을 마지막으로 저장한 상태로 되돌릴까요?','초기화')))break;active.dirty=false;await openDetail(active.id);break;case 'edit':if(active.dirty&&!(await confirmAction('현재 입력값을 먼저 저장하고 제목·이미지를 수정할까요?','저장 후 수정')))break;if(active.dirty)await saveDetail();openEditor(state.items.find(i=>i.id===active.id));break;case 'duplicate':{const copy=C.validateItem({...clone(active.draft),id:C.uid(),title:(active.draft.title.slice(0,190)+' (복제)'),favorite:false,copies:0,createdAt:Date.now(),updatedAt:Date.now(),sample:false});await commit(items=>{if(items.length>=1000)throw Error('최대 1,000개까지 보관할 수 있습니다.');return [...items,copy];});active.dirty=false;await openDetail(copy.id);toast('현재 입력값으로 복제했습니다.');break;}case 'delete':{const id=active.id;if(await confirmAction('“'+active.draft.title+'” 자료를 삭제할까요? 삭제한 자료는 백업이 있어야 복원할 수 있습니다.','삭제','자료 삭제')){await commit(items=>items.filter(i=>i.id!==id));active.dirty=false;await closeDetail();toast('자료를 삭제했습니다.');}break;}case 'export-json':await exportJSON();break;case 'export-html':await exportHTML();break;}
+        if(['add','edit','duplicate','delete','save-detail'].includes(b.dataset.action)&&!requireAdmin())return;switch(b.dataset.action){case 'admin':if(!isAdmin)openAdmin();else if(await confirmAction('관리자 모드를 끝낼까요? 다시 쓰려면 구글 계정으로 로그인해야 합니다.','로그아웃','관리자 로그아웃'))googleLogout();break;case 'close-admin':$('#admin').close();break;case 'home':filter.kind='image';clearFilters();window.scrollTo({top:0});break;case 'saved':filter.saved=!filter.saved;filter.category='전체';filter.subcategory='전체';render();break;case 'clear-filters':clearFilters();break;case 'notice':usageInfo();break;case 'add':openEditor();break;case 'backup':showBackup();break;case 'close-info':$('#info').close();break;case 'close-backup':$('#backup').close();break;case 'close-detail':await closeDetail();break;case 'close-editor':await closeEditor();break;case 'copy':await copyPrompt();break;case 'save-detail':await saveDetail();break;case 'reset-detail':if(active.dirty&&!(await confirmAction('입력값과 원문을 마지막으로 저장한 상태로 되돌릴까요?','초기화')))break;active.dirty=false;await openDetail(active.id);break;case 'edit':if(active.dirty&&!(await confirmAction('현재 입력값을 먼저 저장하고 제목·이미지를 수정할까요?','저장 후 수정')))break;if(active.dirty)await saveDetail();openEditor(state.items.find(i=>i.id===active.id));break;case 'duplicate':{const copy=C.validateItem({...clone(active.draft),id:C.uid(),title:(active.draft.title.slice(0,190)+' (복제)'),favorite:false,copies:0,createdAt:Date.now(),updatedAt:Date.now(),sample:false});await commit(items=>{if(items.length>=1000)throw Error('최대 1,000개까지 보관할 수 있습니다.');return [...items,copy];});active.dirty=false;await openDetail(copy.id);toast('현재 입력값으로 복제했습니다.');break;}case 'delete':{const id=active.id;if(await confirmAction('“'+active.draft.title+'” 자료를 삭제할까요? 삭제한 자료는 백업이 있어야 복원할 수 있습니다.','삭제','자료 삭제')){await commit(items=>items.filter(i=>i.id!==id));active.dirty=false;await closeDetail();toast('자료를 삭제했습니다.');}break;}case 'export-json':await exportJSON();break;case 'export-html':await exportHTML();break;}
       }catch(error){if(error.name==='QuotaExceededError'||error.name==='UnknownError')storageError(error);else toast(error.message||'작업을 완료하지 못했습니다. 다시 시도해주세요.');}});
       $('#detail').addEventListener('cancel',ev=>{ev.preventDefault();closeDetail();});$('#editor').addEventListener('cancel',ev=>{ev.preventDefault();closeEditor();});
       window.addEventListener('beforeunload',ev=>{if(active?.dirty||editorDirty){ev.preventDefault();ev.returnValue='';}});
       async function start(){restoreSession();await initStorage();try{const stored=await readStored();state.items=C.validateBackup(stored??initial);let starterChanged=false;if(stored){const starterIds=new Set(['mumu-shop-bakery-open','mumu-shop-bookstore-curation']);const starterSeeds=C.validateBackup(initial).filter(item=>starterIds.has(item.id));const missing=starterSeeds.filter(seed=>!state.items.some(existing=>existing.id===seed.id));if(missing.length){state.items=[...state.items,...missing];starterChanged=true;}state.items=state.items.map(item=>{const seed=starterSeeds.find(candidate=>candidate.id===item.id);if(seed&& !item.image&&item.updatedAt===seed.updatedAt&&seed.image){starterChanged=true;return {...item,image:seed.image,imageRef:'images/'+item.id};}return item;});const seedVersion=Number(initial.seedVersion)||1;let appliedSeed=1;try{appliedSeed=Number(localStorage.getItem(dbName+'-seed'))||1;}catch{}if(seedVersion>appliedSeed){const samples=C.validateBackup(initial);state.items=state.items.filter(item=>item.kind!=='writer').map(item=>{const seed=samples.find(candidate=>candidate.id===item.id);return seed?{...seed,favorite:item.favorite,copies:item.copies}:item;});starterChanged=true;}try{localStorage.setItem(dbName+'-seed',String(seedVersion));}catch{}}if(!stored||stored.version!==3||starterChanged)await writeStored(state.items);}catch(error){state.items=C.validateBackup(initial);storageMode='memory';console.error('Local data could not be opened:',error?.name||'Error');toast('기존 저장 자료를 열지 못했습니다. 예제로 시작합니다. 기존 저장소는 덮어쓰지 않습니다.');}render();}
-      start();
+       function usageInfo(){
+         $('#info-title').textContent='사용법';
+         $('#info-body').innerHTML='<p>MuMu Prompts는 이미지 결과물과 프롬프트를 모아두고, 필요한 문구만 바꾸어 다시 쓰는 개인용 보관함입니다.</p><p>이 앱을 위한 예제 자료가 포함되어 있으며, 원본 사이트의 자료를 수집하거나 AI 모델을 직접 실행하지 않습니다.</p><h3>포함된 자료</h3><p>예제 이미지와 이미지 프롬프트, 글쓰기 템플릿을 함께 제공합니다. 검색, 카테고리 필터, 즐겨찾기, 프롬프트 조정·복사, 이미지 업로드, 자료 편집·복제·삭제, 백업·복원을 사용할 수 있습니다.</p><h3>시작하기</h3><ol><li>마음에 드는 카드를 열어주세요.</li><li>입력칸에서 주제, 문구, 스타일 등을 바꿔주세요.</li><li>최종 프롬프트를 복사해 사용하세요.</li><li>수정한 값을 다음에도 쓰려면 <strong>변경 저장</strong>을 눌러주세요.</li></ol><h3>나의 자료 추가</h3><p>관리자로 로그인한 뒤 상단의 <strong>추가</strong>에서 이미지와 프롬프트를 넣을 수 있습니다. 하위 메뉴에 쉼표로 여러 주제를 입력하면 상위 메뉴 아래에 자동으로 정리됩니다. 원문에 <strong>{{주제}}</strong>처럼 쓴 부분은 상세 화면의 입력칸이 됩니다. 북마크 아이콘을 누르면 보관함에서 모아둘 수 있습니다.</p><h3>저장과 백업</h3><p>자료는 브라우저 내부에서 텍스트 데이터(items)와 이미지 자산(images)으로 분리해 저장됩니다. 기존 AIKIT Local 형식의 자료는 첫 실행 때 자동으로 새 구조로 옮깁니다.</p><p class="notice">작업을 마친 뒤 <strong>백업 → JSON 저장</strong>을 누르면 items와 images가 분리된 구조로 보관됩니다. 백업 파일은 백업 창에서 다시 복원할 수 있습니다.</p><h3>인터넷 없이 사용</h3><p>설치·로그인·API 키 없이 실행됩니다. 이미지와 글꼴을 외부에서 불러오지 않으며, 입력 내용을 서버로 보내지 않습니다. 인기순은 이 PC에서 복사한 횟수를 기준으로 정렬합니다.</p><p class="small-muted">폰트 사용 정보: 무료 폰트 이용. 별도 폰트 다운로드 없이 기기에 설치된 기본 글꼴을 사용합니다.</p>';
+         $('#info').showModal();
+       }
+       start();
     })();
   </script>
 </body>
