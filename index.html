@@ -45,7 +45,10 @@
     .file-fallback>summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px}
     .admin-account{margin:14px 0;padding:12px 14px;border:1px dashed #bec4b3;border-radius:9px;background:#fbfaf3;font-size:13px;color:var(--muted)}
     .admin-account strong{color:var(--ink);font-family:var(--mumu-mono),monospace}
-    .tagline{margin:20px 0 0;font-size:14px;font-weight:700;color:var(--muted);letter-spacing:-.2px}
+    .tagline{margin:26px 0 4px;font-size:27px;font-weight:800;line-height:1.35;letter-spacing:-1.2px;color:var(--ink)}
+    .tagline em{font-style:normal;color:var(--red)}
+    @media(max-width:850px){.tagline{margin:20px 0 2px;font-size:22px;letter-spacing:-.8px}}
+    @media(max-width:520px){.tagline{font-size:19px}}
     .text-block{border:1px solid #e6e1d0;border-radius:9px;background:#fdfcf6;padding:2px 10px 9px;margin-bottom:8px}
     .text-block-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0 2px;font-size:11px;font-weight:800;letter-spacing:.4px;color:var(--muted)}
     .text-block .builder-row:first-of-type{border-top:0}
@@ -235,8 +238,8 @@
   <main id="main">
     
     
-    <p class="tagline" id="banner-title">마음에 드는 프롬프트, 내 스타일로 바꿔 쓰세요.</p>
-    <div class="feed-tools"><p class="feed-title" id="feed-title">프롬프트를 불러오고 있습니다.</p><div><span class="small-muted" id="storage-label">텍스트·이미지 분리 저장</span>　<button data-action="clear-filters" id="clear-filters" hidden>필터 초기화</button></div></div>
+    <p class="tagline" id="banner-title">마음에 드는 <em>프롬프트</em>, 내 스타일로 바꿔 쓰세요.</p>
+    <div class="feed-tools"><p class="feed-title" id="feed-title">프롬프트를 불러오고 있습니다.</p><div><button data-action="clear-filters" id="clear-filters" hidden>필터 초기화</button></div></div>
     <div class="loading" id="loading">프롬프트 보관함을 여는 중입니다.</div>
     <section class="gallery" id="gallery" aria-label="프롬프트 피드"></section>
     <section class="empty" id="empty" hidden><div data-icon="search"></div><h2 id="empty-title">검색 결과가 없습니다.</h2><p id="empty-copy">다른 단어를 검색하거나 필터를 초기화해보세요.</p><button class="primary" data-action="clear-filters" id="empty-action">전체 보기</button></section>
@@ -248,7 +251,7 @@
     <div class="fields"><label class="field wide">제목<input name="title" maxlength="200" required placeholder="예: 봄소풍 안내 포스터"></label><input type="hidden" name="kind" value="image"><label class="field">카테고리<select name="category" id="form-category"></select></label><label class="field wide">하위 메뉴<input name="subcategories" maxlength="1200" list="subcategory-options" placeholder="예: 매장·업종 홍보, 행사·이벤트"><datalist id="subcategory-options"></datalist><span class="hint">쉼표로 나누어 입력하면 저장 후 이 상위 메뉴의 하위 메뉴로 자동 생성됩니다.</span></label><label class="field wide">사용 툴<input name="tool" maxlength="80" placeholder="예: ChatGPT, Midjourney"></label><details class="builder" id="prompt-builder"><summary>🎨 이미지 프롬프트 구성 도우미 <em>선택</em></summary><div class="builder-body"><p class="builder-note">필요한 항목만 체크하세요. 체크하는 즉시 아래 프롬프트가 다시 조립됩니다. 비워둔 값은 상세 화면에서 채워도 됩니다.</p><div id="builder-groups"></div><p class="builder-status" id="builder-status" hidden></p></div></details><label class="field wide">프롬프트<textarea name="template" id="form-template" rows="7" maxlength="50000" required placeholder="{{주제}}를 {{스타일}}로 표현한 이미지를 만들어주세요."></textarea><span class="hint">바꿔 쓸 단어를 {{주제}}처럼 표시하면 상세 화면에 입력칸이 자동으로 생깁니다.</span><span class="hint" id="detected-fields"></span></label><label class="field wide" id="preview-block" hidden>실제 만들어지는 프롬프트<textarea id="form-preview" class="prompt-preview" rows="6" readonly spellcheck="false" aria-label="완성 프롬프트 미리보기"></textarea><span class="hint" id="preview-note"></span></label><label class="field wide">설명<textarea name="description" rows="2" maxlength="3000" placeholder="활용 방법이나 기억할 내용을 적어두세요."></textarea></label><label class="field wide">해시태그<input name="tags" maxlength="500" placeholder="#포스터 #학교 #수채화"></label></div>
     <div id="form-error" class="form-error" role="alert" hidden></div><div class="actions"><button type="submit" class="primary" id="form-submit"><span data-icon="plus"></span>보관함에 추가</button><button type="button" class="secondary" data-action="close-editor">취소</button></div>
   </form></div></dialog>
-  <dialog id="admin" class="compact-modal" aria-labelledby="admin-title"><div class="modal-header"><h2 id="admin-title">관리자</h2><button class="icon-button" data-action="close-admin" aria-label="관리자 창 닫기"><span data-icon="x"></span></button></div><div class="modal-body"><p class="notice">이 보관함에 프롬프트를 <strong>추가·수정·삭제할 수 있는 사람은 관리자 한 명</strong>입니다. 다른 분들은 로그인 없이 프롬프트를 열어 복사해 쓰실 수 있습니다.</p><p class="admin-account">관리자 계정 <strong>ifreemumu@gmail.com</strong></p><div class="actions"><button class="primary" id="google-login">구글 계정으로 로그인</button></div><div class="form-error" id="admin-error" role="alert" hidden></div><p class="small-muted" id="admin-note" style="margin-top:16px"></p></div></dialog>
+  <dialog id="admin" class="compact-modal" aria-labelledby="admin-title"><div class="modal-header"><h2 id="admin-title">관리자</h2><button class="icon-button" data-action="close-admin" aria-label="관리자 창 닫기"><span data-icon="x"></span></button></div><div class="modal-body"><p class="notice">이 보관함에 프롬프트를 <strong>추가·수정·삭제할 수 있는 사람은 관리자 한 명</strong>입니다. 다른 분들은 로그인 없이 프롬프트를 열어 복사해 쓰실 수 있습니다.</p><div class="actions"><button class="primary" id="google-login">구글 계정으로 로그인</button></div><div class="form-error" id="admin-error" role="alert" hidden></div><p class="small-muted" id="admin-note" style="margin-top:16px"></p></div></dialog>
   <dialog id="info" class="compact-modal" aria-labelledby="info-title"><div class="modal-header"><h2 id="info-title">이용 안내</h2><button class="icon-button" data-action="close-info" aria-label="안내 닫기"><span data-icon="x"></span></button></div><div id="info-body" class="modal-body"></div></dialog>
   <dialog id="backup" class="compact-modal" aria-labelledby="backup-title"><div class="modal-header"><h2 id="backup-title">자료 백업 · 복원</h2><button class="icon-button" data-action="close-backup" aria-label="백업 창 닫기"><span data-icon="x"></span></button></div><div class="modal-body"><p class="notice">현재 자료를 <strong>구글 드라이브</strong>에 백업합니다. 관리자 계정 드라이브의 <strong>MuMu Prompts 백업</strong> 폴더에 저장되며, 이 앱이 만든 파일만 접근합니다.</p><div class="actions"><button class="primary" id="drive-backup">드라이브에 백업하기</button><button class="secondary" id="drive-refresh">목록 새로고침</button></div><div class="form-error" id="drive-error" role="alert" hidden></div><h3>드라이브에 저장된 백업</h3><div id="drive-list" class="drive-list"><p class="small-muted">관리자로 로그인하면 백업 목록이 표시됩니다.</p></div><details class="file-fallback"><summary>파일로 저장·불러오기</summary><div class="backup-option"><span data-icon="file"></span><div><strong>앱과 자료 함께 저장</strong><p>이 파일 하나를 열면 현재 자료가 담긴 앱이 실행됩니다.</p></div><button class="primary" data-action="export-html">HTML 저장</button></div><div class="backup-option"><span data-icon="download"></span><div><strong>자료만 백업</strong><p>텍스트 목록(items)과 이미지 자산(images)이 나뉜 JSON 파일입니다.</p></div><button class="secondary" data-action="export-json">JSON 저장</button></div><div id="import-block"><h3>백업 파일 불러오기</h3><p class="small-muted">이 앱에서 저장한 JSON 파일을 선택하세요.</p><div class="radio-row"><label><input type="radio" name="import-mode" value="merge" checked>기존 자료에 합치기</label><label><input type="radio" name="import-mode" value="replace">백업 자료로 교체</label></div><input id="import-file" type="file" accept="application/json,.json" class="form-control" aria-label="JSON 백업 파일 선택"><div id="import-error" class="form-error" role="alert" hidden></div></div></details><p id="backup-stats" class="small-muted" style="margin-top:18px"></p></div></dialog>
   <dialog id="confirm" class="compact-modal" aria-labelledby="confirm-title"><div class="modal-header"><h2 id="confirm-title">확인</h2></div><div class="confirm-body"><p id="confirm-message"></p><div class="actions"><button class="secondary" id="confirm-no">취소</button><button class="primary" id="confirm-yes">확인</button></div></div></dialog>
@@ -349,22 +352,26 @@ const visible=C.filter(state.items,filter);$('#loading').hidden=true;
         $('#saved-count').textContent=state.items.filter(i=>i.favorite).length;$('#saved-nav').setAttribute('aria-pressed',String(filter.saved));
         $$('[data-sort]').forEach(b=>{b.classList.toggle('active',b.dataset.sort===filter.sort);b.setAttribute('aria-pressed',String(b.dataset.sort===filter.sort));});
          const restricted=filter.query||filter.category!=='전체'||filter.subcategory!=='전체'||filter.saved;$('#clear-filters').hidden=!restricted;$('#clear-search').hidden=!filter.query;
-        $('#banner-title').textContent=filter.saved?'다시 꺼내 쓰는, 나만의 프롬프트 보관함.':'마음에 드는 프롬프트, 내 스타일로 바꿔 쓰세요.';
+        $('#banner-title').innerHTML=filter.saved?'다시 꺼내 쓰는, 나만의 <em>프롬프트 보관함</em>.':'마음에 드는 <em>프롬프트</em>, 내 스타일로 바꿔 쓰세요.';
         
         const noData=filter.saved?!state.items.length:!state.items.some(i=>i.kind===filter.kind);$('#empty-title').textContent=noData?'첫 프롬프트를 추가해보세요.':filter.saved&&!source.length?'보관함이 비어 있습니다.':'검색 결과가 없습니다.';
         $('#empty-copy').textContent=noData?'이미지와 자주 사용하는 프롬프트를 함께 보관할 수 있습니다.':filter.saved&&!source.length?'카드 오른쪽 위의 북마크를 눌러 모아두세요.':'다른 단어를 검색하거나 필터를 초기화해보세요.';
         $('#empty-action').dataset.action=noData?'add':'clear-filters';$('#empty-action').textContent=noData?'프롬프트 추가':'전체 보기';
-        $('#add-nav').hidden=!isAdmin;$('#import-block').hidden=!isAdmin;$('#admin-nav').setAttribute('aria-pressed',String(isAdmin));$('#admin-nav').querySelector('.backup-label').textContent=isAdmin?'관리자 ON':'관리자';$('#empty-action').hidden=noData&&!isAdmin;$('#storage-label').textContent=storageMode==='memory'?'파일 백업 필요':'텍스트·이미지 분리 저장';$('#storage-warning').hidden=storageMode!=='memory';
+        $('#add-nav').hidden=!isAdmin;$('#import-block').hidden=!isAdmin;$('#admin-nav').setAttribute('aria-pressed',String(isAdmin));$('#admin-nav').querySelector('.backup-label').textContent=isAdmin?'관리자 ON':'관리자';$('#empty-action').hidden=noData&&!isAdmin;$('#storage-warning').hidden=storageMode!=='memory';
       }
 
       const GOOGLE={
         clientId:'905691312335-9tnb9chfv144c3durv9va2ksa8p2bc31.apps.googleusercontent.com',
+        adminHash:'42a015966b26915d5e6db5a565f1c6c7451cfaa5cb9ee9cfccfd343655ab13b8',
         apiKey:'AIzaSyC2gyK2swVEt8pjsqyR28hWs4RUo8s8AgQ',
-        adminEmail:'ifreemumu@gmail.com',
         scope:'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email'
       };
       const sessionKey=dbName+'-session';
       let isAdmin=false,account=null,accessToken='',tokenClient=null;
+      async function sha256Hex(text){
+        const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));
+        return [...new Uint8Array(digest)].map(byte=>byte.toString(16).padStart(2,'0')).join('');
+      }
       function adminError(message){const box=$('#admin-error');box.textContent=message||'';box.hidden=!message;}
       function adminNote(message){$('#admin-note').textContent=message||'';}
       function rememberSession(next){
@@ -373,7 +380,7 @@ const visible=C.filter(state.items,filter);$('#loading').hidden=true;
       }
       function restoreSession(){
         try{const raw=sessionStorage.getItem(sessionKey);if(!raw)return;const saved=JSON.parse(raw);
-          if(saved&&saved.email===GOOGLE.adminEmail&&saved.token&&saved.expiresAt>Date.now()){account=saved;accessToken=saved.token;isAdmin=true;}
+          if(saved&&saved.verified&&saved.token&&saved.expiresAt>Date.now()){account=saved;accessToken=saved.token;isAdmin=true;}
         }catch{}
       }
       function gisReady(){return !!(window.google&&google.accounts&&google.accounts.oauth2);}
@@ -407,14 +414,14 @@ const visible=C.filter(state.items,filter);$('#loading').hidden=true;
         const granted=await requestToken();
         adminNote('계정을 확인하는 중입니다...');
         const email=await fetchEmail(granted.access_token);
-        if(email!==GOOGLE.adminEmail){
+        if(await sha256Hex(email)!==GOOGLE.adminHash){
           adminNote('');
           try{google.accounts.oauth2.revoke(granted.access_token,()=>{});}catch{}
-          return adminError(email+' 계정으로는 관리할 수 없습니다. '+GOOGLE.adminEmail+' 계정으로 로그인해주세요.');
+          return adminError('이 계정에는 관리 권한이 없습니다. 관리자 계정으로 다시 로그인해주세요.');
         }
         accessToken=granted.access_token;
         const expiresAt=Date.now()+(Number(granted.expires_in)||3600)*1000-60000;
-        rememberSession({email,token:accessToken,expiresAt});
+        rememberSession({verified:true,token:accessToken,expiresAt});
         isAdmin=true;adminNote('');$('#admin').close();render();
         toast('관리자로 로그인했습니다.');
       }
