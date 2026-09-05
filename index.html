@@ -36,6 +36,7 @@
     .builder-example:hover{border-color:#a9b199;border-style:solid;background:#f5f2e6;color:var(--ink)}
     .admin-account{margin:14px 0;padding:12px 14px;border:1px dashed #bec4b3;border-radius:9px;background:#fbfaf3;font-size:13px;color:var(--muted)}
     .admin-account strong{color:var(--ink);font-family:var(--mumu-mono),monospace}
+    .tagline{margin:20px 0 0;font-size:14px;font-weight:700;color:var(--muted);letter-spacing:-.2px}
     .text-block{border:1px solid #e6e1d0;border-radius:9px;background:#fdfcf6;padding:2px 10px 9px;margin-bottom:8px}
     .text-block-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0 2px;font-size:11px;font-weight:800;letter-spacing:.4px;color:var(--muted)}
     .text-block .builder-row:first-of-type{border-top:0}
@@ -195,10 +196,10 @@
     <div class="header-inner">
       <button class="brand" data-action="home" aria-label="MuMu Prompts 홈">
         <span class="wordmark">MuMu <b>Prompts</b></span>
-        <span class="local-badge">DESK</span>
+        
       </button>
       <div class="header-notes">
-        <span class="workspace-note">PRIVATE PROMPT DESK</span>
+        
         <button class="text-button" data-action="notice">Guide</button>
         <button class="text-button" data-action="about">About</button>
       </div>
@@ -225,13 +226,14 @@
   </section>
   </header>
   <main id="main">
-    <section class="banner"><div><h1 id="banner-title">마음에 드는 <em>프롬프트</em>,<br>내 스타일로 바꿔 쓰세요.</h1><p id="banner-copy">이미지를 고르고, 필요한 부분을 바꾸고, 내 보관함에 저장하세요.</p></div><div class="banner-tag">MY PROMPT ARCHIVE<strong>MAKE IT YOURS.</strong>IMAGE &amp; WRITING</div></section>
+    
     <div class="writer-rule" id="writer-rule" hidden><strong>Writer-kit 사용 방법</strong>　템플릿을 선택하고 주제·대상·말투를 입력하세요. 완성된 프롬프트를 복사해 원하는 글쓰기 도구에 사용할 수 있습니다.</div>
+    <p class="tagline" id="banner-title">마음에 드는 프롬프트, 내 스타일로 바꿔 쓰세요.</p>
     <div class="feed-tools"><p class="feed-title" id="feed-title">프롬프트를 불러오고 있습니다.</p><div><span class="small-muted" id="storage-label">텍스트·이미지 분리 저장</span>　<button data-action="clear-filters" id="clear-filters" hidden>필터 초기화</button></div></div>
     <div class="loading" id="loading">프롬프트 보관함을 여는 중입니다.</div>
     <section class="gallery" id="gallery" aria-label="프롬프트 피드"></section>
     <section class="empty" id="empty" hidden><div data-icon="search"></div><h2 id="empty-title">검색 결과가 없습니다.</h2><p id="empty-copy">다른 단어를 검색하거나 필터를 초기화해보세요.</p><button class="primary" data-action="clear-filters" id="empty-action">전체 보기</button></section>
-    <footer class="foot"><span>MuMu Prompts · 개인용 프롬프트 보관함</span><span id="footer-note">텍스트와 이미지 자산을 나누어 저장합니다. <button data-action="backup">백업하기</button></span></footer>
+    
   </main>
   <dialog id="detail" aria-label="프롬프트 상세"><div class="modal-header"><button class="back-button" data-action="close-detail"><span data-icon="arrow"></span>뒤로가기</button><span class="small-muted">프롬프트 바꿔 쓰기</span><button class="icon-button" data-action="close-detail" aria-label="상세 닫기"><span data-icon="x"></span></button></div><div id="detail-body"></div></dialog>
   <dialog id="editor" class="compact-modal" aria-labelledby="editor-title"><div class="modal-header"><h2 id="editor-title">프롬프트 추가</h2><button class="icon-button" data-action="close-editor" aria-label="추가 창 닫기"><span data-icon="x"></span></button></div><div class="modal-body"><form id="item-form">
@@ -340,8 +342,8 @@ const visible=C.filter(state.items,filter);$('#loading').hidden=true;
         $('#saved-count').textContent=state.items.filter(i=>i.favorite).length;$('#saved-nav').setAttribute('aria-pressed',String(filter.saved));$('#writer-nav').setAttribute('aria-pressed',String(filter.kind==='writer'&&!filter.saved));$('#image-nav').setAttribute('aria-pressed',String(filter.kind==='image'&&!filter.saved));
         $$('[data-sort]').forEach(b=>{b.classList.toggle('active',b.dataset.sort===filter.sort);b.setAttribute('aria-pressed',String(b.dataset.sort===filter.sort));});
          const restricted=filter.query||filter.category!=='전체'||filter.subcategory!=='전체'||filter.saved;$('#clear-filters').hidden=!restricted;$('#clear-search').hidden=!filter.query;$('#writer-rule').hidden=filter.kind!=='writer'||filter.saved;
-        $('#banner-title').innerHTML=filter.saved?'다시 꺼내 쓰는,<br>나만의 <em>프롬프트 보관함</em>.':filter.kind==='writer'?'하고 싶은 이야기,<br><em>좋은 글</em>의 시작으로.':'마음에 드는 <em>프롬프트</em>,<br>내 스타일로 바꿔 쓰세요.';
-        $('#banner-copy').textContent=filter.saved?'저장한 이미지 프롬프트와 글쓰기 템플릿을 한곳에서 만나보세요.':filter.kind==='writer'?'주제와 상황을 입력하고, 내게 맞는 글쓰기 프롬프트를 완성하세요.':'이미지를 고르고, 필요한 부분을 바꾸고, 내 보관함에 저장하세요.';
+        $('#banner-title').textContent=filter.saved?'다시 꺼내 쓰는, 나만의 프롬프트 보관함.':filter.kind==='writer'?'하고 싶은 이야기, 좋은 글의 시작으로.':'마음에 드는 프롬프트, 내 스타일로 바꿔 쓰세요.';
+        
         const noData=filter.saved?!state.items.length:!state.items.some(i=>i.kind===filter.kind);$('#empty-title').textContent=noData?'첫 프롬프트를 추가해보세요.':filter.saved&&!source.length?'보관함이 비어 있습니다.':'검색 결과가 없습니다.';
         $('#empty-copy').textContent=noData?'이미지와 자주 사용하는 프롬프트를 함께 보관할 수 있습니다.':filter.saved&&!source.length?'카드 오른쪽 위의 북마크를 눌러 모아두세요.':'다른 단어를 검색하거나 필터를 초기화해보세요.';
         $('#empty-action').dataset.action=noData?'add':'clear-filters';$('#empty-action').textContent=noData?'프롬프트 추가':'전체 보기';
