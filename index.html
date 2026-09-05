@@ -45,9 +45,10 @@
     .file-fallback>summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px}
     .admin-account{margin:14px 0;padding:12px 14px;border:1px dashed #bec4b3;border-radius:9px;background:#fbfaf3;font-size:13px;color:var(--muted)}
     .admin-account strong{color:var(--ink);font-family:var(--mumu-mono),monospace}
-    .tagline{margin:26px 0 4px;font-size:27px;font-weight:800;line-height:1.35;letter-spacing:-1.2px;color:var(--ink)}
+    .tagline{margin:10px 0 4px;font-size:27px;font-weight:800;line-height:1.35;letter-spacing:-1.2px;color:var(--ink)}
     .tagline em{font-style:normal;color:var(--red)}
-    @media(max-width:850px){.tagline{margin:20px 0 2px;font-size:22px;letter-spacing:-.8px}}
+    .feed-title .crumb{color:var(--muted);font-weight:600;margin:0 2px}
+    @media(max-width:850px){.tagline{margin:8px 0 2px;font-size:22px;letter-spacing:-.8px}}
     @media(max-width:520px){.tagline{font-size:19px}}
     .text-block{border:1px solid #e6e1d0;border-radius:9px;background:#fdfcf6;padding:2px 10px 9px;margin-bottom:8px}
     .text-block-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0 2px;font-size:11px;font-weight:800;letter-spacing:.4px;color:var(--muted)}
@@ -168,19 +169,23 @@
     .sort button{min-height:34px;padding:7px 9px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--mumu-muted);font-size:12px;font-weight:700}
     .sort button:hover{background:var(--mumu-surface-2);color:var(--mumu-ink)}
     .sort button.active{border-color:var(--mumu-rule);background:transparent;color:var(--mumu-ink);box-shadow:none}
-    main{padding-top:10px}
+    main{padding-top:4px}
     @media(max-width:850px){.filter-panel{grid-template-columns:1fr;gap:9px;padding:11px 22px 12px}.sort{border-left:0;border-top:1px solid var(--mumu-rule);padding:9px 0 0;justify-content:flex-end}}
     @media(max-width:520px){.filter-panel{padding:10px 16px 11px}}
     .builder-status{margin:0 0 10px;padding:9px 11px;border-radius:8px;background:#fbf4dd;border:1px solid #e4d093;font-size:12px;line-height:1.6;color:#7a5a12}
     .prompt-preview{min-height:120px;border:1px solid #bdc7ae!important;border-radius:11px;background:#f1f5e9!important;padding:14px;line-height:1.8;font-size:14px;resize:vertical}
-    .topbar .header-inner{grid-template-columns:minmax(0,1fr) auto auto auto;gap:20px;padding:16px 30px 12px}
+    .topbar .header-inner{grid-template-columns:minmax(0,1fr) minmax(220px,480px) minmax(0,1fr);align-items:center;gap:18px;padding:15px 26px 12px}
+    .topbar .header-actions{gap:14px}
+    .topbar .header-actions .text-button{white-space:nowrap}
+    .header-left{display:flex;align-items:center;gap:16px;min-width:0}
+    .topbar .header-actions{justify-self:end}
     .topbar .header-notes{gap:14px}
     .topbar .header-notes .mode-button{border:1px solid var(--mumu-rule);border-radius:8px;padding:8px 12px}
     .topbar .header-notes .mode-button[aria-pressed="true"]{border-color:var(--mumu-accent)}
-    .topbar .search.search-compact{flex:0 0 auto;width:250px;min-width:0;max-width:250px;margin:0;gap:8px;padding:8px 11px;border-radius:8px}
-    .topbar .search.search-compact input{font-size:13px}
-    .topbar .search.search-compact .search-hint{display:none}
-    .topbar .search.search-compact svg{width:17px;height:17px}
+    .topbar .search.search-compact{width:100%;min-width:0;max-width:600px;margin:0 auto;gap:11px;padding:12px 17px;border-radius:11px}
+    .topbar .search.search-compact input{font-size:15px}
+    .topbar .search.search-compact .search-hint{display:inline}
+    .topbar .search.search-compact svg{width:19px;height:19px}
     .topbar .filter-panel{padding:0 20px 13px;gap:14px;border:0}
     .categories{gap:3px}
     .chip{min-height:29px;padding:5px 7px;font-size:12px;letter-spacing:-.3px}
@@ -190,16 +195,14 @@
     .sort button{font-size:11px;padding:6px 7px}
     @media(max-width:1170px){
       .topbar .header-inner{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:14px 22px 10px}
-      .topbar .header-notes{grid-column:auto;grid-row:auto;justify-content:flex-start;order:2}
-      .topbar .header-actions{order:3;margin-left:auto}
-      .topbar .mode-nav{order:4}
-      .topbar .search.search-compact{order:5;flex:1 1 240px;width:auto;max-width:none}
+      .header-left{order:1;flex:1 1 auto;gap:16px}
+      .topbar .header-actions{order:2;margin-left:auto;justify-self:auto}
+      .topbar .search.search-compact{order:3;flex:1 1 100%;padding:11px 15px}
       .topbar .filter-panel{padding:0 18px 12px}
     }
     @media(max-width:520px){
       .topbar .header-inner{padding:12px 16px 9px}
-      .topbar .mode-nav{order:5;width:100%}
-      .topbar .search.search-compact{order:4;flex:1 1 100%}
+      .header-left{gap:12px;flex-wrap:wrap}
       .topbar .filter-panel{padding:0 16px 11px}
     }
   </style>
@@ -209,15 +212,15 @@
   <div id="storage-warning" class="storage-warning" hidden>이 브라우저에서는 자동 저장을 사용할 수 없습니다. 작업을 마치기 전에 <button data-action="backup">앱과 자료를 파일로 저장</button>하세요.</div>
   <header class="topbar">
     <div class="header-inner">
+      <div class="header-left">
       <button class="brand" data-action="home" aria-label="MuMu Prompts 홈">
         <span class="wordmark">MuMu <b>Prompts</b></span>
         
       </button>
       <nav class="header-notes" aria-label="보기">
         <button class="mode-button" id="saved-nav" data-action="saved" aria-pressed="false">보관함 <span id="saved-count">0</span></button>
-        <button class="text-button" data-action="notice">사용법</button>
-        <button class="text-button" data-action="about">소개</button>
       </nav>
+      </div>
       <label class="search search-command search-compact">
         <span id="search-icon"></span>
         <span class="sr-only">프롬프트 검색</span>
@@ -226,6 +229,8 @@
         <button class="clear-search" id="clear-search" type="button" aria-label="검색 지우기" hidden></button>
       </label>
       <div class="header-actions">
+        <button class="text-button" data-action="notice">사용법</button>
+        <button class="text-button" data-action="about">소개</button>
         <button class="pill" id="admin-nav" data-action="admin"><span data-icon="lock"></span><span class="backup-label">관리자</span></button><button class="pill" id="backup-nav" data-action="backup"><span data-icon="download"></span><span class="backup-label">백업</span></button>
         <button class="pill yellow" id="add-nav" data-action="add"><span data-icon="plus"></span>추가</button>
       </div>
@@ -348,7 +353,10 @@
          $('#subcategories').innerHTML=subcategories.length?'<span class="submenu-label">SUB / '+e(filter.category)+'</span><button class="subchip '+(filter.subcategory==='전체'?'active':'')+'" data-subcategory="전체" aria-pressed="'+(filter.subcategory==='전체')+'">전체 <span>'+menuSource.length+'</span></button>'+subcategories.map(sub=>'<button class="subchip '+(sub===filter.subcategory?'active':'')+'" data-subcategory="'+e(sub)+'" aria-pressed="'+(sub===filter.subcategory)+'">'+e(sub)+'<span>'+menuSource.filter(i=>i.subcategories.includes(sub)).length+'</span></button>').join(''):'';
 const visible=C.filter(state.items,filter);$('#loading').hidden=true;
         $('#gallery').innerHTML=visible.map(cardHTML).join('');$('#empty').hidden=visible.length>0;
-        $('#feed-title').innerHTML='<strong>'+(filter.saved?'내 보관함':'이미지 프롬프트')+'</strong> <span class="small-muted">/</span> '+visible.length+'개'+(filter.query?' · “'+e(filter.query)+'”':'');
+        let scope=filter.saved?'내 보관함':'이미지 프롬프트';
+                if(filter.category!=='전체')scope=(filter.saved?'내 보관함 <span class="crumb">›</span> ':'')+e(filter.category);
+                if(filter.subcategory!=='전체')scope+=' <span class="crumb">›</span> '+e(filter.subcategory);
+                $('#feed-title').innerHTML='<strong>'+scope+'</strong> <span class="small-muted">/</span> '+visible.length+'개'+(filter.query?' · “'+e(filter.query)+'”':'');
         $('#saved-count').textContent=state.items.filter(i=>i.favorite).length;$('#saved-nav').setAttribute('aria-pressed',String(filter.saved));
         $$('[data-sort]').forEach(b=>{b.classList.toggle('active',b.dataset.sort===filter.sort);b.setAttribute('aria-pressed',String(b.dataset.sort===filter.sort));});
          const restricted=filter.query||filter.category!=='전체'||filter.subcategory!=='전체'||filter.saved;$('#clear-filters').hidden=!restricted;$('#clear-search').hidden=!filter.query;
