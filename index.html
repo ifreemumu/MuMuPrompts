@@ -699,7 +699,7 @@ const visible=C.filter(state.items,filter);$('#loading').hidden=true;
       if(document.fonts&&document.fonts.ready)document.fonts.ready.then(scheduleLayout).catch(()=>{});
 
       const PUBLISH_NAME='prompts.json';
-      const imageSrc=ref=>/^drive:/.test(ref)?DRIVE_API+'/files/'+ref.slice(6)+'?alt=media&key='+encodeURIComponent(GOOGLE.apiKey):ref;
+      const imageSrc=ref=>/^drive:/.test(ref)?'https://lh3.googleusercontent.com/d/'+ref.slice(6)+'=w1600':ref;
       let publishTimer=0;
       function publishState(message,tone){
         const box=$('#publish-status');if(!box)return;
