@@ -1,0 +1,84 @@
+/* Hallmark · macrostructure: Workbench · tone: tactile-utilitarian · theme: studied-DNA (source: image) · studied: yes · DNA-source: image (user reference) · knobs: left-stack + right-masonry · contrast: pass (40–41) · nav/footer: preserved · slop: pass (42–49) · mobile: pass (34, 49, 50–57) */
+/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V4 */
+:root {
+  --color-detail-paper: oklch(96% 0.014 82);
+  --color-detail-panel: oklch(98.5% 0.009 82);
+  --color-detail-image-surface: oklch(93% 0.018 82);
+  --color-detail-image-border: oklch(46% 0.02 78);
+  --color-detail-image-border-hover: oklch(65% 0.18 85);
+  --color-detail-prompt: oklch(94% 0.026 108);
+  --color-detail-hover: oklch(92% 0.022 92);
+  --color-detail-rule: oklch(80% 0.014 82);
+  --color-detail-rule-strong: oklch(61% 0.018 76);
+  --color-detail-muted: oklch(39% 0.014 78);
+  --color-detail-ink: oklch(20% 0.018 155);
+  --color-detail-accent: oklch(86% 0.16 102);
+  --color-detail-accent-ink: oklch(18% 0.018 155);
+  --color-detail-focus: oklch(35% 0.16 252);
+  --color-detail-error: oklch(50% 0.18 28);
+  --color-detail-error-surface: oklch(95% 0.025 28);
+  --color-detail-success: oklch(45% 0.12 148);
+  --color-detail-success-surface: oklch(95% 0.025 148);
+  --color-detail-backdrop: oklch(16% 0.02 155 / 0.72);
+
+  --font-detail-display: "Pretendard Variable", "Pretendard", system-ui, sans-serif;
+  --font-detail-body: "Pretendard Variable", "Pretendard", system-ui, sans-serif;
+  --font-detail-mono: ui-monospace, "Cascadia Mono", "SFMono-Regular", monospace;
+
+  --space-3xs: 0.125rem;
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+
+  --text-caption: 0.75rem;
+  --text-label: 0.8125rem;
+  --text-related-card: 0.875rem;
+  --text-body: 0.9375rem;
+  --text-section: 1.0625rem;
+  --text-detail-title: clamp(1.55rem, 2.3vw, 2.15rem);
+  --text-related-title: clamp(1.75rem, 2.6vw, 2.5rem);
+
+  --leading-card: 1.45;
+  --leading-heading: 1.2;
+  --leading-copy: 1.75;
+  --tracking-label: 0.08em;
+  --tracking-heading: -0.035em;
+  --weight-regular: 500;
+  --weight-bold: 800;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+  --dur-reduced: 150ms;
+
+  --rule-hairline: 0.0625rem;
+  --rule-strong: 0.125rem;
+  --rule-image: 0.125rem;
+  --rule-focus: 0.125rem;
+  --rule-focus-offset: 0.125rem;
+  --radius-detail-shell: 1rem;
+  --radius-detail-frame: 0.875rem;
+  --radius-detail-media: 0.625rem;
+  --radius-detail-card: 0.625rem;
+  --radius-detail-control: 0.5625rem;
+  --radius-detail-tag: 0.25rem;
+  --control-sm: 2rem;
+  --control-md: 2.75rem;
+  --control-lg: 3rem;
+  --blur-detail-backdrop: 0.25rem;
+  --shift-hover: -0.0625rem;
+  --shift-pressed: 0.0625rem;
+  --opacity-disabled: 0.5;
+  --shadow-detail-shell: 0.375rem 0.5rem 0 var(--color-detail-ink);
+  --shadow-detail-button: 0.125rem 0.1875rem 0 var(--color-detail-ink);
+  --shadow-detail-image: 0 0.25rem 0.75rem oklch(20% 0.018 155 / 0.16);
+  --shadow-detail-image-hover: 0 0.5rem 1.25rem oklch(20% 0.018 155 / 0.24);
+}

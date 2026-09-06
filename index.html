@@ -7,6 +7,7 @@
   <title>MuMu Prompts — 나의 프롬프트 보관함</title>
   <meta name="description" content="텍스트와 이미지를 나누어 관리하는 프롬프트 보관함">
   <link rel="stylesheet" href="fonts/pretendard.css">
+  <link rel="stylesheet" href="tokens.css">
   <style>
     /* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V5 */
     /* Hallmark · macrostructure: Workbench · tone: tactile-utilitarian · anchor hue: phosphor-lime */
@@ -178,6 +179,11 @@
     @media(max-width:850px){.filter-panel{grid-template-columns:1fr;gap:9px;padding:11px 22px 12px}.sort{border-left:0;border-top:1px solid var(--mumu-rule);padding:9px 0 0;justify-content:flex-end}}
     @media(max-width:520px){.filter-panel{padding:10px 16px 11px}}
     .builder-status{margin:0 0 10px;padding:9px 11px;border-radius:8px;background:#fbf4dd;border:1px solid #e4d093;font-size:12px;line-height:1.6;color:#7a5a12}
+    .auto-field-actions{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin-top:2px}
+    .auto-field-actions .secondary{min-height:36px;padding:7px 11px;font-size:12px}
+    .auto-field-status{flex:1;min-width:210px;font-size:12px;font-weight:500;line-height:1.55;color:var(--muted)}
+    .auto-field-status[data-tone="success"]{color:#25633d}
+    .auto-field-status[data-tone="warning"]{color:#94621e}
     .prompt-preview{min-height:120px;border:1px solid #bdc7ae!important;border-radius:11px;background:#f1f5e9!important;padding:14px;line-height:1.8;font-size:14px;resize:vertical}
     .topbar .header-inner{grid-template-columns:minmax(0,1fr) minmax(220px,520px) minmax(0,1fr);align-items:center;gap:18px;padding:12px 26px 10px}
     .topbar .header-actions{gap:14px}
@@ -213,6 +219,180 @@
       .header-left{gap:12px;flex-wrap:wrap}
       .topbar .filter-panel{padding:0 16px 11px}
     }
+    /* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V4 */
+    /* Hallmark · macrostructure: Workbench · tone: tactile-utilitarian · theme: studied-DNA (source: image) · studied: yes · DNA-source: image (user reference) · knobs: left-stack + right-masonry · contrast: pass (40–41) · nav/footer: preserved · slop: pass (42–49) · mobile: pass (34, 49, 50–57) */
+    #detail{
+      width:min(105rem,calc(100% - var(--space-md)));
+      height:min(96dvh,72rem);
+      max-height:96dvh;
+      color:var(--color-detail-ink);
+      background:var(--color-detail-paper);
+      border:var(--rule-strong) solid var(--color-detail-ink);
+      border-radius:var(--radius-detail-shell);
+      box-shadow:var(--shadow-detail-shell);
+    }
+    #detail::backdrop{background:var(--color-detail-backdrop);backdrop-filter:blur(var(--blur-detail-backdrop))}
+    #detail .modal-header{
+      min-height:var(--control-lg);
+      padding:var(--space-sm) var(--space-md);
+      color:var(--color-detail-ink);
+      background:var(--color-detail-panel);
+      border-bottom:var(--rule-hairline) solid var(--color-detail-rule);
+    }
+    #detail .modal-header .small-muted{display:none;font-family:var(--font-detail-mono);letter-spacing:var(--tracking-label);color:var(--color-detail-muted)}
+    #detail .back-button,#detail .icon-button{min-height:var(--control-md);white-space:nowrap}
+    #detail .icon-button{width:var(--control-md);height:var(--control-md)}
+    #detail-body{min-width:0}
+    #detail .detail-layout{
+      display:grid;
+      grid-template-columns:minmax(0,1fr);
+      align-items:start;
+      gap:var(--space-xl);
+      padding:var(--space-md);
+    }
+    #detail .detail-primary{display:flex;min-width:0;flex-direction:column;gap:var(--space-lg)}
+    #detail .detail-preview{
+      position:static;
+      min-width:0;
+      max-height:none;
+      padding:var(--space-sm);
+      color:var(--color-detail-ink);
+      background:var(--color-detail-image-surface);
+      border:var(--rule-hairline) solid var(--color-detail-rule-strong);
+      border-radius:var(--radius-detail-frame);
+    }
+    #detail .detail-preview-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:var(--space-sm);
+      min-height:var(--control-sm);
+      padding:0 var(--space-2xs) var(--space-sm);
+      font-family:var(--font-detail-mono);
+      font-size:var(--text-label);
+      font-weight:var(--weight-bold);
+      letter-spacing:var(--tracking-label);
+    }
+    #detail .detail-preview-head small{color:var(--color-detail-muted);font-size:inherit;font-weight:var(--weight-regular)}
+    #detail .detail-preview img{
+      width:100%;
+      height:auto;
+      max-height:none;
+      margin:0;
+      object-fit:contain;
+      border:var(--rule-image) solid var(--color-detail-image-border);
+      border-radius:var(--radius-detail-media);
+      background:var(--color-detail-panel);
+      box-shadow:var(--shadow-detail-image);
+    }
+    #detail .detail-preview .text-card{min-height:20rem;border-color:var(--color-detail-rule-strong);border-radius:var(--radius-detail-media)}
+    #detail .preview-caption{padding:var(--space-sm) var(--space-2xs) var(--space-2xs);color:var(--color-detail-muted);font-size:var(--text-caption);line-height:var(--leading-copy)}
+    #detail .detail-content{
+      min-width:0;
+      padding:var(--space-lg) 0 0;
+      color:var(--color-detail-ink);
+      background:transparent;
+      border-top:var(--rule-strong) solid var(--color-detail-ink);
+    }
+    #detail .detail-title-row h2{min-width:0;overflow-wrap:anywhere;font-family:var(--font-detail-display);font-size:var(--text-detail-title);line-height:var(--leading-heading);letter-spacing:var(--tracking-heading)}
+    #detail .tags{gap:var(--space-xs);margin:var(--space-sm) 0 var(--space-md)}
+    #detail .tag{color:var(--color-detail-muted);background:var(--color-detail-panel);border-color:var(--color-detail-rule);border-radius:var(--radius-detail-tag)}
+    #detail .detail-description{margin-bottom:var(--space-lg);color:var(--color-detail-muted);font-size:var(--text-body);line-height:var(--leading-copy)}
+    #detail .section-heading{gap:var(--space-sm);margin:var(--space-xl) 0 var(--space-sm);font-size:var(--text-section)}
+    #detail .section-heading small{color:var(--color-detail-muted);white-space:nowrap}
+    #detail .fields{grid-template-columns:minmax(0,1fr);gap:var(--space-md)}
+    #detail .field.wide{grid-column:auto}
+    #detail .field input,#detail .field textarea,#detail .field select,#detail .form-control{
+      min-height:var(--control-lg);
+      color:var(--color-detail-ink);
+      background:var(--color-detail-panel);
+      border:var(--rule-hairline) solid var(--color-detail-rule-strong);
+      border-radius:var(--radius-detail-control);
+      outline:var(--rule-focus) solid transparent;
+      outline-offset:var(--rule-hairline);
+    }
+    #detail .field textarea,#detail .template-editor,#detail .prompt-output{resize:vertical}
+    #detail .prompt-output{color:var(--color-detail-ink);background:var(--color-detail-prompt);border-color:var(--color-detail-rule-strong);border-radius:var(--radius-detail-control)}
+    #detail .primary,#detail .secondary{white-space:nowrap}
+    #detail .primary{color:var(--color-detail-accent-ink);background:var(--color-detail-accent);border-color:var(--color-detail-ink);border-radius:var(--radius-detail-control);box-shadow:var(--shadow-detail-button)}
+    #detail .secondary{color:var(--color-detail-ink);background:var(--color-detail-panel);border-color:var(--color-detail-rule-strong);border-radius:var(--radius-detail-control)}
+    #detail .related{
+      min-width:0;
+      padding:0;
+      color:var(--color-detail-ink);
+      background:transparent;
+      border:0;
+    }
+    #detail .related-head{
+      display:flex;
+      align-items:end;
+      justify-content:space-between;
+      gap:var(--space-md);
+      padding:0 0 var(--space-sm);
+      border-bottom:var(--rule-strong) solid var(--color-detail-ink);
+    }
+    #detail .related-head h3{margin:0;font-family:var(--font-detail-display);font-size:var(--text-related-title);line-height:var(--leading-heading);letter-spacing:var(--tracking-heading)}
+    #detail .related-count{flex:0 0 auto;color:var(--color-detail-muted);font-family:var(--font-detail-mono);font-size:var(--text-caption);font-variant-numeric:tabular-nums;white-space:nowrap}
+    #detail .related-grid{display:block;columns:1;column-gap:var(--space-md);padding:var(--space-md) 0 0;overflow:visible}
+    #detail .related-card{
+      display:inline-grid;
+      width:100%;
+      min-height:var(--control-lg);
+      margin:0 0 var(--space-md);
+      padding:0;
+      overflow:hidden;
+      break-inside:avoid;
+      color:var(--color-detail-ink);
+      background:var(--color-detail-panel);
+      border:var(--rule-image) solid var(--color-detail-image-border);
+      border-radius:var(--radius-detail-card);
+      box-shadow:var(--shadow-detail-image);
+      text-align:start;
+      transition:transform var(--dur-micro) var(--ease-out);
+    }
+    #detail .related-card img{width:100%;height:auto;object-fit:cover;background:var(--color-detail-image-surface)}
+    #detail .related-card__title{
+      display:block;
+      min-width:0;
+      padding:var(--space-sm);
+      overflow:hidden;
+      font-size:var(--text-related-card);
+      font-weight:var(--weight-bold);
+      line-height:var(--leading-card);
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    #detail .related-mini-text{display:grid;min-height:10rem;place-items:center;padding:var(--space-md);background:var(--color-detail-prompt);font-family:var(--font-detail-display);font-size:var(--text-section);font-weight:var(--weight-bold)}
+    #detail .related-empty{padding:var(--space-xl) 0;color:var(--color-detail-muted);font-size:var(--text-body);line-height:var(--leading-copy)}
+    #detail :is(button,input,textarea,select,summary):focus-visible{outline:var(--rule-focus) solid var(--color-detail-focus);outline-offset:var(--rule-focus-offset)}
+    #detail :is(button,input,textarea,select)[disabled],#detail :is(button,input,textarea,select)[aria-disabled="true"]{opacity:var(--opacity-disabled);cursor:not-allowed}
+    #detail :is(button,input,textarea,select)[aria-busy="true"]{cursor:progress}
+    #detail :is(input,textarea,select)[aria-invalid="true"]{background:var(--color-detail-error-surface);border-color:var(--color-detail-error)}
+    #detail :is(input,textarea,select)[data-state="success"]{background:var(--color-detail-success-surface);border-color:var(--color-detail-success)}
+    @media (hover:hover) and (pointer:fine){
+      #detail .related-card:hover{border-color:var(--color-detail-image-border-hover);box-shadow:var(--shadow-detail-image-hover)}
+      #detail .primary:hover{transform:translateY(var(--shift-hover));color:var(--color-detail-accent-ink);background:var(--color-detail-accent)}
+      #detail .secondary:hover{color:var(--color-detail-ink);background:var(--color-detail-hover)}
+      #detail :is(input,textarea,select):not([aria-invalid="true"]):not([data-state="success"]):hover{background:var(--color-detail-hover)}
+    }
+    #detail .related-card:active,#detail .primary:active,#detail .secondary:active{transform:translateY(var(--shift-pressed))}
+    @media (min-width:40rem){
+      #detail{width:min(105rem,calc(100% - var(--space-xl)))}
+      #detail .modal-header .small-muted{display:inline}
+      #detail .detail-layout{padding:var(--space-lg)}
+      #detail .related-grid{columns:2}
+    }
+    @media (min-width:60rem){
+      #detail .detail-layout{grid-template-columns:minmax(20rem,30rem) minmax(0,1fr);gap:var(--space-xl)}
+      #detail .related{position:sticky;top:calc(var(--control-lg) + var(--space-lg));align-self:start}
+      #detail .related-grid{columns:2}
+    }
+    @media (min-width:90rem){
+      #detail .detail-layout{grid-template-columns:minmax(22rem,31rem) minmax(0,1fr)}
+      #detail .related-grid{columns:3}
+    }
+    @media (pointer:coarse){#detail button,#detail summary{min-height:var(--control-lg)}}
+    @media (prefers-reduced-motion:reduce){#detail .related-card,#detail .primary,#detail .secondary{transition-duration:var(--dur-reduced)}#detail .related-card:hover,#detail .primary:hover,#detail .secondary:hover{transform:none}}
   </style>
 </head>
 <body>
@@ -255,10 +435,10 @@
     <section class="empty" id="empty" hidden><div data-icon="search"></div><h2 id="empty-title">검색 결과가 없습니다.</h2><p id="empty-copy">다른 단어를 검색하거나 필터를 초기화해보세요.</p><button class="primary" data-action="clear-filters" id="empty-action">전체 보기</button></section>
     
   </main>
-  <dialog id="detail" aria-label="프롬프트 상세"><div class="modal-header"><button class="back-button" data-action="close-detail"><span data-icon="arrow"></span>뒤로가기</button><span class="small-muted">프롬프트 바꿔 쓰기</span><button class="icon-button" data-action="close-detail" aria-label="상세 닫기"><span data-icon="x"></span></button></div><div id="detail-body"></div></dialog>
+  <dialog id="detail" aria-label="프롬프트 상세"><div class="modal-header"><button class="back-button" data-action="close-detail"><span data-icon="arrow"></span>뒤로가기</button><span class="small-muted">프롬프트 워크스페이스</span><button class="icon-button" data-action="close-detail" aria-label="상세 닫기"><span data-icon="x"></span></button></div><div id="detail-body"></div></dialog>
   <dialog id="editor" class="compact-modal" aria-labelledby="editor-title"><div class="modal-header"><h2 id="editor-title">프롬프트 추가</h2><button class="icon-button" data-action="close-editor" aria-label="추가 창 닫기"><span data-icon="x"></span></button></div><div class="modal-body"><form id="item-form">
     <div class="upload-drop" id="upload-drop"><span data-icon="image"></span><span id="upload-label">이미지를 끌어 놓거나 선택하세요</span><img id="upload-preview" alt="선택한 이미지 미리보기" hidden><input type="file" id="upload-file" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="이미지 선택"><small>PNG · JPG · WebP · GIF, 최대 20MB. 긴 변 1400px으로 자동 축소되어 저장됩니다. 이미지 없이도 저장할 수 있습니다.</small><button class="secondary" id="remove-upload" type="button" hidden>이미지 제외</button></div>
-    <div class="fields"><label class="field wide">제목<input name="title" maxlength="200" required placeholder="예: 봄소풍 안내 포스터"></label><input type="hidden" name="kind" value="image"><label class="field">카테고리<select name="category" id="form-category"></select></label><label class="field wide">하위 메뉴<input name="subcategories" maxlength="1200" list="subcategory-options" placeholder="예: 매장·업종 홍보, 행사·이벤트"><datalist id="subcategory-options"></datalist><span class="hint">쉼표로 나누어 입력하면 저장 후 이 상위 메뉴의 하위 메뉴로 자동 생성됩니다.</span></label><label class="field wide">사용 툴<input name="tool" maxlength="80" placeholder="예: ChatGPT, Midjourney"></label><details class="builder" id="prompt-builder"><summary>🎨 이미지 프롬프트 구성 도우미 <em>선택</em></summary><div class="builder-body"><p class="builder-note">필요한 항목만 체크하세요. 체크하는 즉시 아래 프롬프트가 다시 조립됩니다. 비워둔 값은 상세 화면에서 채워도 됩니다.</p><div id="builder-groups"></div><p class="builder-status" id="builder-status" hidden></p></div></details><label class="field wide">프롬프트<textarea name="template" id="form-template" rows="7" maxlength="50000" required placeholder="{{주제}}를 {{스타일}}로 표현한 이미지를 만들어주세요."></textarea><span class="hint">바꿔 쓸 단어를 {{주제}}처럼 표시하면 상세 화면에 입력칸이 자동으로 생깁니다.</span><span class="hint" id="detected-fields"></span></label><label class="field wide" id="preview-block" hidden>실제 만들어지는 프롬프트<textarea id="form-preview" class="prompt-preview" rows="6" readonly spellcheck="false" aria-label="완성 프롬프트 미리보기"></textarea><span class="hint" id="preview-note"></span></label><label class="field wide">설명<textarea name="description" rows="2" maxlength="3000" placeholder="활용 방법이나 기억할 내용을 적어두세요."></textarea></label><label class="field wide">해시태그<input name="tags" maxlength="500" placeholder="#포스터 #학교 #수채화"></label></div>
+    <div class="fields"><label class="field wide">제목<input name="title" maxlength="200" required placeholder="예: 봄소풍 안내 포스터"></label><input type="hidden" name="kind" value="image"><label class="field">카테고리<select name="category" id="form-category"></select></label><label class="field wide">하위 메뉴<input name="subcategories" maxlength="1200" list="subcategory-options" placeholder="예: 매장·업종 홍보, 행사·이벤트"><datalist id="subcategory-options"></datalist><span class="hint">쉼표로 나누어 입력하면 저장 후 이 상위 메뉴의 하위 메뉴로 자동 생성됩니다.</span></label><label class="field wide">사용 툴<input name="tool" maxlength="80" placeholder="예: ChatGPT, Midjourney"></label><details class="builder" id="prompt-builder"><summary>🎨 이미지 프롬프트 구성 도우미 <em>선택</em></summary><div class="builder-body"><p class="builder-note">필요한 항목만 체크하세요. 체크하는 즉시 아래 프롬프트가 다시 조립됩니다. 비워둔 값은 상세 화면에서 채워도 됩니다.</p><div id="builder-groups"></div><p class="builder-status" id="builder-status" hidden></p></div></details><div class="field wide"><label for="form-template">프롬프트</label><textarea name="template" id="form-template" rows="7" maxlength="50000" required placeholder="완성된 프롬프트를 붙여 넣거나, {{주제}}처럼 입력하세요."></textarea><div class="auto-field-actions"><button type="button" class="secondary" id="auto-fields">✨ 입력칸 자동 만들기</button><span class="auto-field-status" id="auto-field-status" role="status" aria-live="polite">프롬프트를 붙여 넣으면 자동 분석합니다.</span></div><span class="hint">[주제], 항목명: 값, {{주제}} 형식을 찾아 ‘내 상황에 맞게 바꾸기’ 입력칸으로 만듭니다.</span><span class="hint" id="detected-fields"></span></div><label class="field wide" id="preview-block" hidden>실제 만들어지는 프롬프트<textarea id="form-preview" class="prompt-preview" rows="6" readonly spellcheck="false" aria-label="완성 프롬프트 미리보기"></textarea><span class="hint" id="preview-note"></span></label><label class="field wide">설명<textarea name="description" rows="2" maxlength="3000" placeholder="활용 방법이나 기억할 내용을 적어두세요."></textarea></label><label class="field wide">해시태그<input name="tags" maxlength="500" placeholder="#포스터 #학교 #수채화"></label></div>
     <div id="form-error" class="form-error" role="alert" hidden></div><div class="actions"><button type="submit" class="primary" id="form-submit"><span data-icon="plus"></span>보관함에 추가</button><button type="button" class="secondary" data-action="close-editor">취소</button></div>
   </form></div></dialog>
   <dialog id="admin" class="compact-modal" aria-labelledby="admin-title"><div class="modal-header"><h2 id="admin-title">관리자</h2><button class="icon-button" data-action="close-admin" aria-label="관리자 창 닫기"><span data-icon="x"></span></button></div><div class="modal-body"><p class="notice">이 보관함에 프롬프트를 <strong>추가·수정·삭제할 수 있는 사람은 관리자 한 명</strong>입니다. 다른 분들은 로그인 없이 프롬프트를 열어 복사해 쓰실 수 있습니다.</p><div class="actions"><button class="primary" id="google-login">구글 계정으로 로그인</button></div><div class="form-error" id="admin-error" role="alert" hidden></div><p class="small-muted" id="admin-note" style="margin-top:16px"></p></div></dialog>
@@ -2093,12 +2273,78 @@
       function keys(template){return [...new Set(Array.from(template.matchAll(/\{\{\s*([^{}]+?)\s*\}\}/g),m=>m[1].trim()))];}
       function fieldsFor(template,old=[]){return keys(template).map(key=>({key,label:key,value:old.find(f=>f.key===key)?.value??''}));}
       function resolve(template,fields){const values=new Map(fields.map(f=>[f.key,f.value]));return template.replace(/\{\{\s*([^{}]+?)\s*\}\}/g,(original,key)=>values.get(key.trim())||original);}
+      const AUTO_FIELD_SKIP=new Set(['사용자 입력','제작 지시','마스터 프롬프트','master prompt','출력 방식','최종 출력','최종 목표','기본 역할','추가 기능','제목 해석 원칙','장면 구성 원칙','한글 표현 규칙','레이아웃 원칙','예시','예를 들어','참고','주의','아래','위의','입력된']);
+      const autoAlias=value=>String(value??'').normalize('NFKC').replace(/\s+/g,' ').trim().toLocaleLowerCase('ko');
+      function autoKey(value){
+        const key=String(value??'').normalize('NFKC').replace(/\{\{|\}\}|\[|\]/g,'').replace(/[*_`#]/g,'').replace(/^\s*(?:(?:[-•]+|[①-⑳]|\d+[.)])\s*)/,'').replace(/^\s*사용자\s*입력\s*/i,'').replace(/\s*[:：]\s*$/,'').replace(/\s+/g,' ').trim();
+        if(!key||key.length>100||key.length>40||AUTO_FIELD_SKIP.has(key.toLocaleLowerCase('ko'))||/https?:\/\//i.test(key)||/[.!?。！？=<>]/.test(key)||/(?:하세요|하십시오|합니다|됩니다|않습니다|바랍니다|해야 한다|해야 합니다|할 수 있다|할 수 있습니다)$/.test(key))return '';
+        return key;
+      }
+      function autoSeed(value,key){
+        const seed=String(value??'').replace(/^\s*\*\*|\*\*\s*$/g,'').trim();
+        if(!seed||autoAlias(seed)===autoAlias(key)||/(?:원하는|희망하는).{0,30}입력|(?:이미지|내용|주제).{0,20}첨부|첨부.{0,20}(?:입력|선택)|입력(?:하거나)?.{0,20}(?:하세요|하십시오)|수정(?:하세요|하십시오)|선택(?:하세요|하십시오)/.test(seed))return '';
+        return seed.slice(0,10000);
+      }
+      function autoFields(source){
+        const original=String(source??'').replace(/\r\n?/g,'\n');
+        if(!original.trim())return {template:original,fields:[],convertedCount:0,existingCount:0,skipped:0};
+        const found=new Map(),aliases=new Map();let skipped=0;
+        const add=(rawKey,value='',alias='')=>{
+          const key=autoKey(rawKey);if(!key)return '';
+          let field=found.get(key);
+          if(!field){if(found.size>=40){skipped++;return '';}field={key,label:key,value:''};found.set(key,field);}
+          const seed=autoSeed(value,key);if(seed&&!field.value)field.value=seed;
+          aliases.set(autoAlias(key),key);if(alias)aliases.set(autoAlias(alias),key);
+          return key;
+        };
+        const existing=keys(original);existing.forEach(key=>add(key));
+        const lines=original.split('\n'),contexts=[];let inInputs=false,sawInputs=false;
+        const sectionStart=/사용자\s*입력/i,sectionEnd=/^\s*(?:#{1,6}\s*)?(?:(?:[②-⑳]|[2-9]\d*[.)])\s*)?(?:제작\s*지시|master\s*prompt|마스터\s*프롬프트|출력\s*방식|최종\s*출력|기본\s*역할|구성\s*원칙)/i;
+        lines.forEach(line=>{if(sectionStart.test(line)){inInputs=true;sawInputs=true;}else if(inInputs&&sectionEnd.test(line))inInputs=false;contexts.push(inInputs);});
+        const previousLabel=index=>{for(let i=index-1;i>=0&&i>=index-3;i--){if(!lines[i].trim())continue;return autoKey(lines[i]);}return '';};
+        const labelBefore=(before,allowPlain)=>{
+          let text=before.replace(/\*+\s*$/,'').trimEnd();
+          const colon=Math.max(text.lastIndexOf(':'),text.lastIndexOf('：'));
+          if(colon>=0&&!text.slice(colon+1).trim())text=text.slice(0,colon);else if(!allowPlain)return '';
+          const spaced=[...text.matchAll(/\s{2,}/g)].pop();if(spaced)text=text.slice(spaced.index+spaced[0].length);
+          text=text.slice(Math.max(text.lastIndexOf(']'),text.lastIndexOf('|'),text.lastIndexOf('•'))+1).replace(/^.*?사용자\s*입력\s*/i,'').trim();
+          return autoKey(text);
+        };
+        const bracket=/\*\*\[([^\]\n]{1,1000})\]\*\*|\[([^\]\n]{1,1000})\]/g;
+        const convertedLines=lines.map((line,index)=>{
+          let out='',cursor=0,match;
+          bracket.lastIndex=0;
+          while((match=bracket.exec(line))){
+            out+=line.slice(cursor,match.index);const inner=(match[1]??match[2]).trim(),after=line.slice(match.index+match[0].length);let key=aliases.get(autoAlias(inner))||'';
+            if(/^\s*\(/.test(after)){out+=match[0];cursor=match.index+match[0].length;continue;}
+            if(!key&&(contexts[index]||!sawInputs)){
+              const before=line.slice(0,match.index);key=labelBefore(before,!after.trim()||/\s{2,}\S[^\n]*$/.test(before));
+              if(!key&&!line.slice(0,match.index).replace(/\*+/g,'').trim()&&!after.replace(/\*+/g,'').trim())key=previousLabel(index);
+              if(!key&&autoKey(inner)&&!autoSeed(inner,inner))key=autoKey(inner);
+            }
+            if(key){key=add(key,inner,inner);out+=key?'{{'+key+'}}':match[0];}else out+=match[0];
+            cursor=match.index+match[0].length;
+          }
+          return out+line.slice(cursor);
+        });
+        const inline=/^(\s*(?:(?:[-*•]|[①-⑳]|\d+[.)])\s*)?)([^:：\n]{1,50})\s*[:：]\s*(.+?)\s*$/;
+        const finalLines=convertedLines.map((line,index)=>{
+          if(!(contexts[index]||!sawInputs)||line.includes('{{'))return line;
+          const match=line.match(inline);if(!match)return line;
+          const key=autoKey(match[2]),value=match[3].trim();
+          if(!key||!value||/^(?:https?:\/\/|data:)/i.test(value))return line;
+          const stored=add(key,value,value);return stored?match[1]+match[2].trim()+': {{'+stored+'}}':line;
+        });
+        return {template:finalLines.join('\n'),fields:[...found.values()],convertedCount:Math.max(0,found.size-existing.length),existingCount:existing.length,skipped};
+      }
       function tags(input){return [...new Set(String(input).split(/[\s,#]+/).filter(Boolean))].slice(0,20);}
       function subcategories(input){return [...new Set(String(input).split(/[,;|]+/).map(v=>v.trim()).filter(Boolean))].slice(0,20);}
       function filter(items,{kind='image',category='전체',subcategory='전체',query='',saved=false,sort='latest'}={}){
         const words=query.normalize('NFKC').toLocaleLowerCase('ko').trim().split(/\s+/).filter(Boolean).map(w=>w.replace(/^#/,''));
-        return items.filter(item=>(saved||item.kind===kind)&&(!saved||item.favorite)&&(category==='전체'||item.category===category)&&(subcategory==='전체'||item.subcategories.includes(subcategory))&&words.every(w=>[item.title,item.category,item.tool,item.description,item.template,...item.tags,...item.subcategories,...item.fields.map(f=>f.value)].join(' ').normalize('NFKC').toLocaleLowerCase('ko').includes(w)))
-          .sort((a,b)=>sort==='popular'?(b.copies-a.copies||b.createdAt-a.createdAt):(b.createdAt-a.createdAt));
+        const matched=items.filter(item=>(saved||item.kind===kind)&&(!saved||item.favorite)&&(category==='전체'||item.category===category)&&(subcategory==='전체'||item.subcategories.includes(subcategory))&&words.every(w=>[item.title,item.category,item.tool,item.description,item.template,...item.tags,...item.subcategories,...item.fields.map(f=>f.value)].join(' ').normalize('NFKC').toLocaleLowerCase('ko').includes(w)));
+        if(sort==='popular')return matched.sort((a,b)=>b.copies-a.copies||b.createdAt-a.createdAt);
+        const newestImage=matched.reduce((latest,item)=>item.image&&(!latest||item.createdAt>latest.createdAt)?item:latest,null);
+        return matched.sort((a,b)=>Number(b.id===newestImage?.id)-Number(a.id===newestImage?.id)||b.createdAt-a.createdAt||b.updatedAt-a.updatedAt||a.title.localeCompare(b.title,'ko'));
       }
       function validImage(image){return typeof image==='string'&&(image===''||/^drive:[A-Za-z0-9_-]{10,120}$/.test(image)||/^assets\/[A-Za-z0-9._-]{1,120}\.(?:png|jpe?g|webp|gif)$/.test(image)||(image.length<=29*1024*1024&&/^data:image\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/]+={0,2}$/.test(image)));}
       function validateItem(item){
@@ -2125,7 +2371,7 @@
       }
       function merge(current,incoming){const result=current.map(i=>structuredClone(i));let added=0,skipped=0;for(const item of incoming){const old=result.find(i=>i.id===item.id);if(old&&JSON.stringify(old)===JSON.stringify(item)){skipped++;continue;}result.push({...structuredClone(item),id:old?uid():item.id});added++;}if(result.length>1000)throw Error('합친 자료가 1,000개를 넘습니다. 일부 자료를 정리해주세요.');return {items:result,added,skipped};}
       function safeJSON(data){return JSON.stringify(data).replace(/</g,'\\u003c').replace(/>/g,'\\u003e').replace(/&/g,'\\u0026');}
-      return {IMAGE_CATEGORIES,WRITER_CATEGORIES,CATEGORY_SUBCATEGORIES,normalizeCategory,normalizeSubcategory,uid,esc,keys,fieldsFor,resolve,tags,subcategories,filter,validImage,validateItem,validateBackup,merge,safeJSON};
+      return {IMAGE_CATEGORIES,WRITER_CATEGORIES,CATEGORY_SUBCATEGORIES,normalizeCategory,normalizeSubcategory,uid,esc,keys,fieldsFor,resolve,autoFields,tags,subcategories,filter,validImage,validateItem,validateBackup,merge,safeJSON};
     })();
   </script>
   <script id="app-script">
@@ -2457,10 +2703,33 @@ const visible=C.filter(state.items,filter);$('#loading').hidden=true;
       $('#publish-now').addEventListener('click',()=>{if(requireAdmin())publishToDrive().catch(()=>{});});
       $('#publish-download').addEventListener('click',downloadConfigured);
       function cardHTML(item){return '<article class="card"><button class="card-open" data-open="'+e(item.id)+'" aria-label="'+e(item.title)+' 상세 보기"><div class="card-media">'+mediaHTML(item)+(item.sample?'<span class="sample-tag">예제</span>':'')+'</div><div class="card-footer"><h2 class="card-title">'+e(item.title)+'</h2><div class="card-meta"><span>'+e(item.subcategories[0]||item.category)+'</span></div></div></article>';}
-      function mediaHTML(item){return item.image?'<img src="'+imageSrc(item.image)+'" alt="'+e(item.title)+'" loading="lazy" decoding="async"'+(item.ratio?' style="aspect-ratio:'+item.ratio.toFixed(4)+'"':'')+'>':'<div class="text-card"><small>IMAGE PROMPT</small><strong>'+e(item.title)+'</strong><p>'+e(item.description.slice(0,90))+'</p></div>';}
+      function mediaHTML(item,eager=false){return item.image?'<img src="'+imageSrc(item.image)+'" alt="'+e(item.title)+'" loading="'+(eager?'eager':'lazy')+'" '+(eager?'fetchpriority="high" ':'')+'decoding="async"'+(item.ratio?' style="aspect-ratio:'+item.ratio.toFixed(4)+'"':'')+'>':'<div class="text-card"><small>IMAGE PROMPT</small><strong>'+e(item.title)+'</strong><p>'+e(item.description.slice(0,90))+'</p></div>';}
       function fieldHTML(field){const long=field.value.length>70||field.value.includes('\n');return '<label class="field '+(long?'wide':'')+'">'+e(field.label)+(long?'<textarea data-field="'+e(field.key)+'" maxlength="10000" rows="3">'+e(field.value)+'</textarea>':'<input data-field="'+e(field.key)+'" maxlength="10000" value="'+e(field.value)+'" placeholder="'+e(field.label)+' 입력">')+'</label>';}
-      async function openDetail(id){if(active?.dirty&&!(await confirmAction('저장하지 않은 수정 내용이 있습니다. 저장하지 않고 다른 자료를 열까요?','이동')))return;const item=state.items.find(i=>i.id===id);if(!item)return;active={id,draft:clone(item),dirty:false};
-        $('#detail-body').innerHTML='<div class="detail-layout"><div class="detail-preview">'+mediaHTML(item)+'<p class="preview-caption">'+(item.sample?'이 앱을 위해 별도로 만든 예제입니다. ':'')+'입력값을 바꾸면 프롬프트에 반영됩니다. 미리보기 이미지는 바뀌지 않습니다.</p></div><div class="detail-content"><div class="detail-title-row"><h2>'+e(item.title)+'</h2></div><div class="tags"><span class="tag">'+e(item.tool||'도구 자유 선택')+'</span><span class="tag">'+e(item.category)+'</span>'+item.tags.map(t=>'<span class="tag">#'+e(t)+'</span>').join('')+item.subcategories.map(s=>'<span class="tag subtag">/'+e(s)+'</span>').join('')+'</div><p class="detail-description">'+e(item.description)+'</p><div class="section-heading">내 상황에 맞게 바꾸기 <small id="field-count">'+item.fields.length+'개 항목</small></div><div class="fields" id="detail-fields">'+(item.fields.length?item.fields.map(fieldHTML).join(''):'<p class="small-muted">아래 원문 편집에서 프롬프트를 수정할 수 있습니다.</p>')+'</div><div class="section-heading">최종 프롬프트 <small>입력 내용 자동 반영</small></div><textarea class="prompt-output" id="final-prompt" aria-label="최종 프롬프트" readonly spellcheck="false">'+e(C.resolve(item.template,item.fields))+'</textarea><div class="change-note" id="change-note"></div><button class="primary copy-button" data-action="copy">'+icon('copy')+'최종 프롬프트 복사하기</button><div class="actions">'+(isAdmin?'<button class="secondary" data-action="save-detail">'+icon('check')+'변경 저장</button>':'')+'<button class="secondary" data-action="reset-detail">입력 초기화</button></div>'+(isAdmin?'<details><summary>프롬프트 원문 편집</summary><textarea id="detail-template" class="form-control template-editor" maxlength="50000" aria-label="프롬프트 원문">'+e(item.template)+'</textarea><p class="small-muted" style="margin-top:8px">{{주제}}처럼 표시한 부분은 위에 입력칸이 생깁니다.</p></details><div class="actions"><button class="secondary" data-action="edit">제목·이미지 수정</button><button class="secondary" data-action="duplicate">복제</button><button class="secondary danger" data-action="delete">삭제</button></div>':'<p class="small-muted">입력값을 바꾸고 최종 프롬프트를 복사해 사용하세요. 자료를 고치거나 새로 추가하는 것은 관리자만 할 수 있습니다.</p>')+'</div></div><div class="related"><h3>함께 둘러보기</h3><div class="related-grid">'+state.items.filter(i=>i.id!==id&&i.kind===item.kind).sort((a,b)=>Number(b.category===item.category)-Number(a.category===item.category)).slice(0,5).map(i=>'<button data-open="'+e(i.id)+'">'+(i.image?'<img src="'+imageSrc(i.image)+'" loading="lazy" alt="'+e(i.title)+'">':'<div class="mini-text">Writer-kit</div>')+'<span>'+e(i.title)+'</span></button>').join('')+'</div></div>';
+      function similarItems(item,limit=12){
+        const sourceSubcategories=new Set(item.subcategories||[]);
+        const sourceTags=new Set(item.tags||[]);
+        return state.items
+          .filter(candidate=>candidate.id!==item.id&&candidate.kind===item.kind)
+          .map((candidate,index)=>{
+            const sharedSubcategories=(candidate.subcategories||[]).filter(value=>sourceSubcategories.has(value)).length;
+            const sharedTags=(candidate.tags||[]).filter(value=>sourceTags.has(value)).length;
+            const score=(candidate.category===item.category?12:0)+(sharedSubcategories*5)+(sharedTags*3)+(candidate.tool===item.tool?1:0)+(Boolean(candidate.image)===Boolean(item.image)?2:0);
+            return {candidate,index,score};
+          })
+          .sort((a,b)=>b.score-a.score||((b.candidate.updatedAt||0)-(a.candidate.updatedAt||0))||a.index-b.index)
+          .slice(0,limit)
+          .map(entry=>entry.candidate);
+      }
+      async function openDetail(id){
+        if(active?.dirty&&!(await confirmAction('저장하지 않은 수정 내용이 있습니다. 저장하지 않고 다른 자료를 열까요?','이동')))return;
+        const item=state.items.find(i=>i.id===id);
+        if(!item)return;
+        const similar=similarItems(item);
+        const similarMarkup=similar.length
+          ?similar.map(i=>'<button class="related-card" data-open="'+e(i.id)+'" aria-label="'+e(i.title)+' 열기">'+(i.image?'<img src="'+imageSrc(i.image)+'" loading="lazy" decoding="async" alt="'+e(i.title)+'">':'<span class="related-mini-text">IMAGE PROMPT</span>')+'<span class="related-card__title">'+e(i.title)+'</span></button>').join('')
+          :'<p class="related-empty">아직 비슷한 이미지가 없습니다.</p>';
+        active={id,draft:clone(item),dirty:false};
+        $('#detail-body').innerHTML='<div class="detail-layout"><div class="detail-primary"><section class="detail-preview" aria-labelledby="selected-image-label"><div class="detail-preview-head"><span id="selected-image-label">선택 이미지</span><small>원본 미리보기</small></div>'+mediaHTML(item,true)+'<p class="preview-caption">'+(item.sample?'이 앱을 위해 별도로 만든 예제입니다. ':'')+'입력값을 바꾸면 프롬프트에 반영됩니다. 미리보기 이미지는 바뀌지 않습니다.</p></section><section class="detail-content" aria-labelledby="detail-title"><div class="detail-title-row"><h2 id="detail-title">'+e(item.title)+'</h2></div><div class="tags"><span class="tag">'+e(item.tool||'도구 자유 선택')+'</span><span class="tag">'+e(item.category)+'</span>'+item.tags.map(t=>'<span class="tag">#'+e(t)+'</span>').join('')+item.subcategories.map(s=>'<span class="tag subtag">/'+e(s)+'</span>').join('')+'</div><p class="detail-description">'+e(item.description)+'</p><div class="section-heading">내 상황에 맞게 바꾸기 <small id="field-count">'+item.fields.length+'개 항목</small></div><div class="fields" id="detail-fields">'+(item.fields.length?item.fields.map(fieldHTML).join(''):'<p class="small-muted">아래 원문 편집에서 프롬프트를 수정할 수 있습니다.</p>')+'</div><div class="section-heading">최종 프롬프트 <small>입력 내용 자동 반영</small></div><textarea class="prompt-output" id="final-prompt" aria-label="최종 프롬프트" readonly spellcheck="false">'+e(C.resolve(item.template,item.fields))+'</textarea><div class="change-note" id="change-note"></div><button class="primary copy-button" data-action="copy">'+icon('copy')+'최종 프롬프트 복사하기</button><div class="actions">'+(isAdmin?'<button class="secondary" data-action="save-detail">'+icon('check')+'변경 저장</button>':'')+'<button class="secondary" data-action="reset-detail">입력 초기화</button></div>'+(isAdmin?'<details><summary>프롬프트 원문 편집</summary><textarea id="detail-template" class="form-control template-editor" maxlength="50000" aria-label="프롬프트 원문">'+e(item.template)+'</textarea><p class="small-muted" style="margin-top:8px">{{주제}}처럼 표시한 부분은 위에 입력칸이 생깁니다.</p></details><div class="actions"><button class="secondary" data-action="edit">제목·이미지 수정</button><button class="secondary" data-action="duplicate">복제</button><button class="secondary danger" data-action="delete">삭제</button></div>':'<p class="small-muted">입력값을 바꾸고 최종 프롬프트를 복사해 사용하세요. 자료를 고치거나 새로 추가하는 것은 관리자만 할 수 있습니다.</p>')+'</section></div><aside class="related" aria-labelledby="related-title"><div class="related-head"><h3 id="related-title">비슷한 이미지</h3><span class="related-count">'+similar.length+'개 추천</span></div><div class="related-grid">'+similarMarkup+'</div></aside></div>';
         if(!$('#detail').open)$('#detail').showModal();$('#detail').scrollTop=0;updatePrompt();
       }
       function updatePrompt(){if(!active)return;$('#final-prompt').value=C.resolve(active.draft.template,active.draft.fields);const unfilled=active.draft.fields.filter(f=>!f.value.trim()).length;$('#change-note').textContent=(active.dirty?'수정 중 · 변경 저장을 누르면 다음에도 유지됩니다.':'')+(unfilled?'　미입력 '+unfilled+'개':'');}
@@ -2470,10 +2739,25 @@ const visible=C.filter(state.items,filter);$('#loading').hidden=true;
       async function copyPrompt(){if(!active)return;const text=$('#final-prompt').value;let copied=false;try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(text);copied=true;}}catch{}if(!copied){$('#final-prompt').focus();$('#final-prompt').select();copied=document.execCommand('copy');}if(!copied){toast('프롬프트를 선택했습니다. Ctrl+C로 복사해주세요.');return;}toast('프롬프트를 복사했습니다.');const id=active.id;try{await commit(items=>items.map(i=>i.id===id?{...i,copies:i.copies+1}:i));}catch{toast('복사했습니다. 복사 횟수는 저장하지 못했습니다.');}}
       function fillCategories(kind,value){const cats=C.IMAGE_CATEGORIES;$('#form-category').innerHTML=[...new Set([...cats,...(value?[value]:[])])].map(c=>'<option value="'+e(c)+'">'+e(c)+'</option>').join('');if(value)$('#form-category').value=value;$('#prompt-builder').hidden=false;fillSubOptions();}
       function fillSubOptions(){const list=$('#subcategory-options');if(!list)return;const picked=$('#form-category').value;list.innerHTML=(C.CATEGORY_SUBCATEGORIES[picked]||[]).map(s=>'<option value="'+e(s)+'">').join('');}
-      function openEditor(item=null){editorItem=item?clone(item):null;editorDirty=false;uploadImage=item?.image||'';uploadRatio=item?.ratio||0;const form=$('#item-form');form.reset();resetBuilder();form.elements.kind.value=item?.kind||filter.kind;fillCategories(form.elements.kind.value,item?.category);for(const key of ['title','tool','template','description'])form.elements[key].value=item?.[key]||'';form.elements.subcategories.value=item?.subcategories.join(', ')||'';form.elements.tags.value=item?.tags.map(t=>'#'+t).join(' ')||'';updateEditorPreview();$('#editor-title').textContent=item?'프롬프트 수정':'프롬프트 추가';$('#form-submit').innerHTML=icon(item?'check':'plus')+(item?'수정 내용 저장':'보관함에 추가');$('#form-error').hidden=true;refreshUpload();detectedFields();$('#editor').showModal();}
+      function openEditor(item=null){editorItem=item?clone(item):null;editorDirty=false;uploadImage=item?.image||'';uploadRatio=item?.ratio||0;const form=$('#item-form');form.reset();resetBuilder();form.elements.kind.value=item?.kind||filter.kind;fillCategories(form.elements.kind.value,item?.category);for(const key of ['title','tool','template','description'])form.elements[key].value=item?.[key]||'';form.elements.subcategories.value=item?.subcategories.join(', ')||'';form.elements.tags.value=item?.tags.map(t=>'#'+t).join(' ')||'';autoFieldStatus('프롬프트를 붙여 넣으면 자동 분석합니다.');updateEditorPreview();$('#editor-title').textContent=item?'프롬프트 수정':'프롬프트 추가';$('#form-submit').innerHTML=icon(item?'check':'plus')+(item?'수정 내용 저장':'보관함에 추가');$('#form-error').hidden=true;refreshUpload();detectedFields();$('#editor').showModal();}
       async function closeEditor(){if(editorDirty&&!(await confirmAction('입력 중인 내용이 있습니다. 저장하지 않고 닫을까요?','닫기')))return;$('#editor').close();editorDirty=false;}
       function refreshUpload(){$('#upload-preview').hidden=!uploadImage;if(uploadImage)$('#upload-preview').src=imageSrc(uploadImage);else $('#upload-preview').removeAttribute('src');$('#upload-label').hidden=!!uploadImage;$('#remove-upload').hidden=!uploadImage;}
       function detectedFields(){$('#detected-fields').textContent=C.keys($('#form-template').value).length?'입력칸: '+C.keys($('#form-template').value).join(' · '):'';}
+      function autoFieldStatus(message,tone=''){$('#auto-field-status').textContent=message;$('#auto-field-status').dataset.tone=tone;}
+      function autoCreateFields(fromPaste=false){
+        const textarea=$('#form-template'),source=textarea.value,result=C.autoFields(source);
+        if(!source.trim()){autoFieldStatus('먼저 프롬프트를 붙여 넣어주세요.','warning');return;}
+        const previous=new Map([...(editorItem?.fields||[]),...builderSeeds].map(field=>[field.key,field.value]));
+        builderSeeds=result.fields.map(field=>({...field,value:field.value||previous.get(field.key)||''}));
+        builderOwned=false;
+        if(result.template!==source){textarea.value=result.template;editorDirty=true;}
+        detectedFields();updateEditorPreview();
+        const count=C.keys(result.template).length;
+        if(result.convertedCount)autoFieldStatus('바꿔 쓰는 입력칸 '+count+'개를 만들었습니다. 미리보기를 확인한 뒤 저장하세요.','success');
+        else if(count)autoFieldStatus('이미 입력칸 '+count+'개가 준비되어 있습니다.','success');
+        else autoFieldStatus('자동으로 찾은 항목이 없습니다. ‘항목명: 값’ 또는 [값] 형식으로 작성해보세요.','warning');
+        if(fromPaste&&result.skipped)autoFieldStatus('입력칸은 최대 40개까지 만들 수 있어 나머지 항목은 그대로 두었습니다.','warning');
+      }
 
       const BUILDER_GROUPS=[
         {name:'무엇을 만들까요',items:[
@@ -2506,6 +2790,7 @@ const visible=C.filter(state.items,filter);$('#loading').hidden=true;
       function builderValueMap(){
         const values=new Map();
         builderPicks().forEach(pick=>{if(pick.value)values.set(pick.key,pick.value);});
+        builderSeeds.forEach(field=>{if(!values.has(field.key)&&field.value)values.set(field.key,field.value);});
         (editorItem?.fields||[]).forEach(field=>{if(!values.has(field.key)&&field.value)values.set(field.key,field.value);});
         return values;
       }
@@ -2648,7 +2933,7 @@ const visible=C.filter(state.items,filter);$('#loading').hidden=true;
       async function imageRatio(dataUrl){try{const image=await loadBitmap(dataUrl);return image.naturalHeight?Number((image.naturalWidth/image.naturalHeight).toFixed(4)):0;}catch{return 0;}}
       async function shrinkImage(dataUrl,type){const image=await loadBitmap(dataUrl);if(type==='image/gif')return dataUrl;const scale=Math.min(1,MAX_IMAGE_EDGE/Math.max(image.naturalWidth,image.naturalHeight));const width=Math.max(1,Math.round(image.naturalWidth*scale)),height=Math.max(1,Math.round(image.naturalHeight*scale));const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const context=canvas.getContext('2d');if(!context)return dataUrl;context.imageSmoothingQuality='high';context.drawImage(image,0,0,width,height);let encoded='';try{encoded=canvas.toDataURL('image/webp',IMAGE_QUALITY);}catch{return dataUrl;}if(!encoded.startsWith('data:image/webp')){try{encoded=canvas.toDataURL('image/jpeg',IMAGE_QUALITY);}catch{return dataUrl;}}if(!C.validImage(encoded)||encoded.length>=dataUrl.length)return dataUrl;return encoded;}async function readImage(file){if(!file)return;if(!['image/png','image/jpeg','image/webp','image/gif'].includes(file.type))throw Error('PNG, JPG, WebP, GIF 이미지를 선택해주세요.');if(file.size>20*1024*1024)throw Error('이미지는 20MB 이하로 선택해주세요.');const data=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(Error('파일을 읽지 못했습니다.'));r.readAsDataURL(file);});if(!C.validImage(data))throw Error('이미지 형식을 확인해주세요.');const shrunk=await shrinkImage(data,file.type);uploadImage=shrunk;uploadRatio=await imageRatio(shrunk);editorDirty=true;refreshUpload();const saved=1-shrunk.length/data.length;if(saved>.05)toast('이미지를 '+Math.round(file.size/1024)+'KB에서 '+Math.round(shrunk.length*.75/1024)+'KB로 줄여서 넣었습니다.');}
       function formError(error){$('#form-error').textContent=error.message||'저장하지 못했습니다. 다시 시도해주세요.';$('#form-error').hidden=false;}
-      $('#item-form').addEventListener('input',()=>editorDirty=true);$('#form-category').addEventListener('change',fillSubOptions);$('#form-template').addEventListener('input',()=>{builderOwned=false;detectedFields();updateEditorPreview();});
+      $('#item-form').addEventListener('input',()=>editorDirty=true);$('#form-category').addEventListener('change',fillSubOptions);$('#form-template').addEventListener('input',()=>{builderOwned=false;detectedFields();updateEditorPreview();});$('#form-template').addEventListener('paste',()=>requestAnimationFrame(()=>autoCreateFields(true)));$('#auto-fields').addEventListener('click',()=>autoCreateFields(false));
       $('#upload-file').addEventListener('change',async ev=>{try{await readImage(ev.target.files[0]);$('#form-error').hidden=true;}catch(error){formError(error);}});$('#remove-upload').addEventListener('click',()=>{uploadImage='';uploadRatio=0;$('#upload-file').value='';editorDirty=true;refreshUpload();});
       ['dragenter','dragover'].forEach(type=>$('#upload-drop').addEventListener(type,ev=>{ev.preventDefault();$('#upload-drop').classList.add('dragging');}));['dragleave','drop'].forEach(type=>$('#upload-drop').addEventListener(type,ev=>{ev.preventDefault();$('#upload-drop').classList.remove('dragging');}));$('#upload-drop').addEventListener('drop',async ev=>{try{await readImage(ev.dataTransfer.files[0]);}catch(error){formError(error);}});
       $('#item-form').addEventListener('submit',async ev=>{ev.preventDefault();if(!requireAdmin())return;const button=$('#form-submit');button.disabled=true;$('#form-error').hidden=true;try{const f=ev.target.elements;const now=Date.now();const item=C.validateItem({id:editorItem?.id||C.uid(),title:f.title.value.trim(),kind:f.kind.value,category:f.category.value,subcategories:C.subcategories(f.subcategories.value),tool:f.tool.value.trim(),template:f.template.value.trim(),description:f.description.value.trim(),tags:C.tags(f.tags.value),image:await stashImage(uploadImage),ratio:uploadRatio||editorItem?.ratio||0,fields:C.fieldsFor(f.template.value,[...builderSeeds,...(editorItem?.fields||[])]),favorite:editorItem?.favorite??false,copies:editorItem?.copies??0,createdAt:editorItem?.createdAt??now,updatedAt:now,sample:editorItem?.sample??false});await commit(items=>{if(editorItem)return items.map(i=>i.id===item.id?{...item,favorite:i.favorite,copies:i.copies}:i);if(items.length>=1000)throw Error('최대 1,000개까지 보관할 수 있습니다.');return [...items,item];});editorDirty=false;$('#editor').close();if(active?.id===item.id){active.dirty=false;await openDetail(item.id);}filter.kind=item.kind;filter.category='전체';filter.subcategory='전체';filter.query='';filter.saved=false;$('#search').value='';render();toast(editorItem?'수정 내용을 저장했습니다.':'프롬프트를 추가했습니다.');}catch(error){formError(error);}finally{button.disabled=false;}});
