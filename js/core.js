@@ -89,9 +89,9 @@
       }
       function tags(input){return [...new Set(String(input).split(/[\s,#]+/).filter(Boolean))].slice(0,20);}
       function subcategories(input){return [...new Set(String(input).split(/[,;|]+/).map(v=>v.trim()).filter(Boolean))].slice(0,20);}
-      function filter(items,{kind='image',category='전체',subcategory='전체',query='',saved=false,sort='latest'}={}){
+      function filter(items,{kind='image',category='전체',subcategory='전체',query='',saved=false,sort='latest',imageMode='all'}={}){
         const words=query.normalize('NFKC').toLocaleLowerCase('ko').trim().split(/\s+/).filter(Boolean).map(w=>w.replace(/^#/,''));
-        const matched=items.filter(item=>(saved||item.kind===kind)&&(!saved||item.favorite)&&(category==='전체'||item.category===category)&&(subcategory==='전체'||item.subcategories.includes(subcategory))&&words.every(w=>[item.title,item.category,item.tool,item.description,item.template,...item.tags,...item.subcategories,...item.fields.map(f=>f.value)].join(' ').normalize('NFKC').toLocaleLowerCase('ko').includes(w)));
+        const matched=items.filter(item=>(saved||item.kind===kind)&&(!saved||item.favorite)&&(imageMode==='all'||(imageMode==='registered'?Boolean(item.image):!item.image))&&(category==='전체'||item.category===category)&&(subcategory==='전체'||item.subcategories.includes(subcategory))&&words.every(w=>[item.title,item.category,item.tool,item.description,item.template,...item.tags,...item.subcategories,...item.fields.map(f=>f.value)].join(' ').normalize('NFKC').toLocaleLowerCase('ko').includes(w)));
         const now=Date.now(),registeredAt=item=>Math.min(Number(item.createdAt)||0,now),updatedAt=item=>Math.min(Number(item.updatedAt)||registeredAt(item),now);
         if(sort==='popular')return matched.sort((a,b)=>b.copies-a.copies||registeredAt(b)-registeredAt(a)||updatedAt(b)-updatedAt(a));
         return matched.sort((a,b)=>registeredAt(b)-registeredAt(a)||updatedAt(b)-updatedAt(a)||a.title.localeCompare(b.title,'ko'));

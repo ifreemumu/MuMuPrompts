@@ -34,7 +34,7 @@
       </label>
       <div class="header-actions">
 
-        <button class="pill" id="admin-nav" data-action="admin" aria-label="관리자 모드"><span data-icon="lock"></span><span class="backup-label">관리자</span></button><button class="pill admin-only" id="backup-nav" data-action="backup" aria-label="백업 및 복원" hidden><span data-icon="download"></span><span class="backup-label">백업</span></button>
+        <button class="pill" id="admin-nav" data-action="admin" aria-label="관리자 모드"><span data-icon="lock"></span><span class="backup-label">관리자</span></button><button class="pill admin-only" id="unimaged-nav" data-action="unimaged" aria-label="이미지 미등록 프롬프트 관리" aria-pressed="false" hidden><span data-icon="image"></span><span class="unimaged-label">이미지 미등록</span><span id="unimaged-count"></span></button><button class="pill admin-only" id="backup-nav" data-action="backup" aria-label="백업 및 복원" hidden><span data-icon="download"></span><span class="backup-label">백업</span></button>
         <button class="pill yellow admin-only" id="add-nav" data-action="add" hidden><span data-icon="plus"></span>추가</button>
       </div>
     </div>
@@ -101,8 +101,6 @@
   <script type="application/json" id="prompt-clear-transparent-watercolor-seeds"></script>
   <script type="application/json" id="prompt-split-photo-poster-seeds"></script>
   <script type="application/json" id="prompt-education-poster-seeds"></script>
-  <script id="seed-script" src="data/seeds.js"></script>
-  <script id="core-script" src="js/core.js"></script>
   <script type="application/json" id="prompt-photo-3d-poster-seeds"></script>
   <script type="application/json" id="prompt-riso-photo-memory-seeds"></script>
   <script type="application/json" id="prompt-book-cover-style-seeds"></script>
@@ -115,6 +113,8 @@
   <script type="application/json" id="prompt-minimal-line-story-seeds"></script>
   <script type="application/json" id="prompt-minimal-line-story-variant-seeds"></script>
   <script type="application/json" id="prompt-school-info-infographic-seeds"></script>
+  <script id="seed-script" src="data/seeds.js"></script>
+  <script id="core-script" src="js/core.js"></script>
   <script id="app-script" src="js/app.js"></script>
 </body>
 </html>

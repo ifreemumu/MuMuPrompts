@@ -23,6 +23,13 @@ function harness(){
   return {api:context.window.testAPI,context,saved,timers,nodes};
 }
 test('all app scripts compile',()=>{for(const file of ['js/app.js','js/core.js','data/seeds.js'])new vm.Script(read(file));});
+test('every bundled seed placeholder exists before the loader runs',()=>{
+  const html=read('index.html');
+  const loader=html.indexOf('id="seed-script"');
+  for(const id of Object.keys(JSON.parse(read('data/seeds.js').match(/const seeds=(\{[\s\S]*?\});\nfor\(/)[1]))){
+    assert.ok(html.indexOf('id="'+id+'"')<loader,id+' must precede the seed loader');
+  }
+});
 test('starter images exist and fields have valid defaults',()=>{
   const {api}=harness();
   const items=api.C.validateBackup(api.initial);
@@ -35,6 +42,12 @@ test('backup validation preserves old sample IDs and empty datasets',()=>{
   const {api}=harness();const item={...api.initial.items[0],id:'demo-cafe-poster'};
   assert.equal(api.C.validateBackup({app:'mumu-prompts',version:3,items:[item]}).length,1);
   assert.equal(api.C.validateBackup({app:'mumu-prompts',version:3,items:[]}).length,0);
+});
+test('image mode keeps unregistered prompts out of the public feed',()=>{
+  const {api}=harness();const [registered]=api.C.validateBackup(api.initial).filter(item=>item.image);
+  const missing={...registered,id:'missing-image-test',title:'이미지 미등록 테스트',image:''};
+  assert.deepEqual(api.C.filter([registered,missing],{imageMode:'registered'}).map(item=>item.id),[registered.id]);
+  assert.deepEqual(api.C.filter([registered,missing],{imageMode:'missing'}).map(item=>item.id),[missing.id]);
 });
 test('single-key fallback storage round-trips images and empty deletion',async()=>{
   const {api}=harness();api.configure({mode:'localStorage'});
