@@ -78,6 +78,13 @@ test('gallery cards close their interactive wrapper and prioritize the first ima
   assert.match(api.cardHTML(item,1),/loading="lazy"/);
   assert.match(api.cardHTML(item,0),/<\/button><\/article>$/);
 });
+test('image ratio metadata reserves space without overriding the loaded image ratio',()=>{
+  const {api}=harness();const item=api.C.validateBackup(api.initial).find(i=>i.image);
+  for(const ratio of [2/3,1,16/9]){
+    assert.ok(api.cardHTML({...item,ratio}).includes('style="aspect-ratio:auto '+ratio.toFixed(4)+'"'));
+  }
+  assert.ok(!api.cardHTML({...item,ratio:0}).includes('aspect-ratio:'));
+});
 test('single-key fallback storage round-trips images and empty deletion',async()=>{
   const {api}=harness();api.configure({mode:'localStorage'});
   const items=api.C.validateBackup(api.initial).slice(0,2);

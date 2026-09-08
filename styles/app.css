@@ -552,7 +552,7 @@ dialog::backdrop{background:var(--color-detail-backdrop)}
 #detail .back-button{min-height:44px;font-size:var(--text-small)}
 #detail .detail-layout{padding:var(--space-md);gap:var(--space-xl)}
 #detail .detail-preview{padding:0;border:0;background:transparent;align-self:stretch}
-#detail .detail-preview img{border:1px solid var(--color-rule);max-height:320px;width:100%;object-fit:contain;background:var(--color-paper-2)}
+#detail .detail-preview img{border:1px solid var(--color-rule);max-height:320px;width:auto;max-width:100%;height:auto;margin-inline:auto;object-fit:contain;background:var(--color-paper-2)}
 #detail .detail-preview-head{padding:0 0 var(--space-xs);font-family:var(--font-body);font-size:var(--text-small);letter-spacing:0;font-weight:650}
 #detail .preview-caption{font-size:var(--text-small)}
 #detail .detail-content{padding-top:var(--space-lg);border-top:1px solid var(--color-rule)}
