@@ -77,6 +77,7 @@ test('gallery cards close their interactive wrapper and prioritize the first ima
   assert.match(api.cardHTML(item,0),/loading="eager" fetchpriority="high"/);
   assert.match(api.cardHTML(item,1),/loading="lazy"/);
   assert.match(api.cardHTML(item,0),/<\/button><\/article>$/);
+  assert.doesNotMatch(api.cardHTML(item,0),/card-arrow|↗/);
 });
 test('image ratio metadata reserves space without overriding the loaded image ratio',()=>{
   const {api}=harness();const item=api.C.validateBackup(api.initial).find(i=>i.image);

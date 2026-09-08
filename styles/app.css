@@ -515,7 +515,6 @@ main{max-width:var(--page-width);padding:0 var(--page-gutter) var(--space-lg)}
 .card-title{font-size:var(--text-body);font-weight:650;line-height:1.5;letter-spacing:-.02em;word-break:keep-all;overflow-wrap:anywhere}
 .card-meta{margin-top:var(--space-xs);font-size:var(--text-small);line-height:1.5;color:var(--color-muted);gap:var(--space-xs)}
 .card-meta span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.card-arrow{flex:0 0 auto;margin-left:auto;font-size:var(--text-base)}
 .text-card{padding:var(--space-lg);min-height:180px;background:var(--color-paper-2);color:var(--color-ink);gap:var(--space-sm);word-break:keep-all}
 .text-card strong{font-size:var(--text-section);font-weight:650;overflow-wrap:anywhere}
 .text-card small,.text-card p{font-size:var(--text-small);color:var(--color-muted);line-height:1.6}
