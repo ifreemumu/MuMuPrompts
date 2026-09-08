@@ -21,7 +21,17 @@
   --font-wordmark: var(--font-display);
   --text-small: 0.8125rem;
   --text-base: 1rem;
-  --text-gallery-title: clamp(1.625rem, 2.6vw, 2.375rem);
+  --text-gallery-title: clamp(1.25rem, 1.8vw, 1.625rem);
+  /* Image treatments restored from the pre-gallery-redesign UI. */
+  --color-card-border: #d3d6c8;
+  --color-card-border-hover: #a9b199;
+  --color-image-border: oklch(46% 0.02 78);
+  --shadow-card-hover: 0 10px 24px -12px rgba(41,51,46,.45);
+  --shadow-image: 0 0.25rem 0.75rem oklch(20% 0.018 155 / 0.16);
+  --shadow-image-hover: 0 0.5rem 1.25rem oklch(20% 0.018 155 / 0.24);
+  --dur-card-hover: 180ms;
+  --ease-card-hover: ease;
+  --shift-card-hover: -3px;
   --radius-control: 0.625rem;
   --radius-card: 0.875rem;
   --page-width: 96rem;

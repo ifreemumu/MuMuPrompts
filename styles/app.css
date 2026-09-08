@@ -638,3 +638,28 @@ dialog::backdrop{background:var(--color-detail-backdrop)}
 }
 @media(pointer:coarse){.feed-tools .sort button{min-height:44px}}
 @media(prefers-reduced-motion:reduce){.card-open{transition:none}.card-open:hover,#detail .primary:hover{transform:none}}
+
+/* Hallmark · component: gallery intro + image treatments · pre-emit: P4 H5 E4 S5 R5 V4
+ * User-requested restoration: retain the original border, shadow and hover treatment.
+ * Keep the cream palette and current navigation; no page-structure rotation. */
+:root{
+  --color-detail-image-border:var(--color-image-border);
+  --shadow-detail-image:var(--shadow-image);
+  --shadow-detail-image-hover:var(--shadow-image-hover);
+}
+.gallery-intro{display:block;padding:var(--space-md) 0 var(--space-lg)}
+.gallery-intro .tagline{line-height:1.35;word-break:keep-all}
+.gallery-intro .intro-copy{margin-top:var(--space-2xs);font-size:var(--text-related-card);line-height:1.6}
+.card-open,.card-open:hover{border:1px solid var(--color-card-border);box-shadow:none;transform:none}
+.card-open{transition:transform var(--dur-card-hover) var(--ease-card-hover),box-shadow var(--dur-card-hover) var(--ease-card-hover),border-color var(--dur-card-hover) var(--ease-card-hover)}
+.card-open:hover .card-title{text-decoration:none}
+#detail .detail-preview img,#detail .related-card{border:var(--rule-image) solid var(--color-detail-image-border);box-shadow:var(--shadow-detail-image)}
+#detail .related-card{border-radius:var(--radius-detail-card)}
+@media(hover:hover) and (pointer:fine){
+  .card-open:hover{transform:translateY(var(--shift-card-hover));border-color:var(--color-card-border-hover);box-shadow:var(--shadow-card-hover)}
+  #detail .related-card:hover{border-color:var(--color-detail-image-border-hover);box-shadow:var(--shadow-detail-image-hover)}
+}
+@media(prefers-reduced-motion:reduce){
+  .card-open{transition:none}
+  .card-open:hover{transform:none}
+}
