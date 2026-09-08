@@ -72,7 +72,7 @@
       $('#confirm-yes').addEventListener('click',()=>finishConfirm(true));$('#confirm-no').addEventListener('click',()=>finishConfirm(false));$('#confirm').addEventListener('cancel',event=>{event.preventDefault();finishConfirm(false);});
       let menuSignature='';
       function render(){
-        $('#backup-stats').textContent='전체 '+state.items.length+'개 · 저장한 자료 '+state.items.filter(i=>i.favorite).length+'개';
+        updateBackupStats();
         const imageMode=isAdmin&&filter.imageMode==='missing'?'missing':'registered';
         if(filter.imageMode!==imageMode)filter.imageMode=imageMode;
         const source=state.items.filter(i=>i.kind===filter.kind&&(imageMode==='missing'?!i.image:Boolean(i.image)));
@@ -203,6 +203,8 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
 
       const DRIVE_FOLDER='MuMu Prompts 백업',DRIVE_API='https://www.googleapis.com/drive/v3',DRIVE_UPLOAD='https://www.googleapis.com/upload/drive/v3';
       let driveFolderId='';
+      function localDateKey(){const now=new Date();return [now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');}
+      function markDailyBackup(){try{localStorage.setItem(dbName+'-daily-backup',localDateKey());}catch{}}
       function driveError(message){const box=$('#drive-error');box.textContent=message||'';box.hidden=!message;}
       async function driveCall(url,options={}){
         if(!accessToken)throw Error('관리자로 로그인한 뒤 사용할 수 있습니다.');
@@ -241,9 +243,9 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
       }
       async function driveListBackups(){
         const folder=await driveEnsureFolder();
-        const query="'"+folder+"' in parents and trashed=false";
-        const listed=await(await driveCall(DRIVE_API+'/files?q='+encodeURIComponent(query)+'&fields=files(id,name,size,modifiedTime)&orderBy=modifiedTime desc&pageSize=30')).json();
-        return listed.files||[];
+        const query="'"+folder+"' in parents and mimeType='application/json' and name contains 'MuMu-Prompts-' and trashed=false";
+        const listed=await(await driveCall(DRIVE_API+'/files?q='+encodeURIComponent(query)+'&fields=files(id,name,size,modifiedTime)&orderBy=modifiedTime desc&pageSize=5')).json();
+        return (listed.files||[]).slice(0,5);
       }
       function driveRowHTML(file){
         const when=new Date(file.modifiedTime).toLocaleString('ko-KR');
@@ -265,7 +267,7 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
       }
       $('#drive-backup').addEventListener('click',async()=>{
         const button=$('#drive-backup');button.disabled=true;driveError('');
-        try{if(!requireAdmin())return;const saved=await driveSaveBackup();toast('드라이브에 '+saved.name+' 으로 백업했습니다.');await refreshDriveList();}
+        try{if(!requireAdmin())return;const saved=await driveSaveBackup();markDailyBackup();toast('드라이브에 '+saved.name+' 으로 백업했습니다.');await refreshDriveList();}
         catch(error){driveError(error.message||'백업하지 못했습니다.');}
         finally{button.disabled=false;}
       });
@@ -300,6 +302,14 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
         const box=$('#publish-status');if(!box)return;
         box.textContent=message||'';box.hidden=!message;
         box.className='publish-status'+(tone?' '+tone:'');
+        const toolbar=$('#admin-sync-status');if(toolbar){toolbar.textContent=message||'웹 상태 확인 중';toolbar.className='admin-sync-status'+(tone?' '+tone:'');}
+      }
+      async function dailyBackupAfterPublish(){
+        if(!accessToken||initial.offline)return;
+        let last='';try{last=localStorage.getItem(dbName+'-daily-backup')||'';}catch{}
+        if(last===localDateKey())return;
+        try{await driveSaveBackup();markDailyBackup();publishState('웹 반영 완료 · '+state.items.length+'개 · 오늘 자동 백업 완료','ok');}
+        catch{publishState('웹 반영 완료 · '+state.items.length+'개 · 자동 백업은 확인이 필요합니다.','bad');}
       }
       async function driveShare(fileId){
         await driveCall(DRIVE_API+'/files/'+encodeURIComponent(fileId)+'/permissions',{method:'POST',
@@ -357,6 +367,7 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
           $('#sync-notice').hidden=true;
           publishState('사이트에 반영했습니다 · '+state.items.length+'개 · '+new Date().toLocaleTimeString('ko-KR'),'ok');
           renderPublishPanel();
+          await dailyBackupAfterPublish();
         }catch(error){publishState(error.message||'사이트에 반영하지 못했습니다.','bad');}
       }
       function schedulePublish(){
@@ -395,7 +406,7 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
       async function checkPublished(){
         const remote=await loadPublished();if(!remote)return null;
         const key=contentKey(remote);let base='';try{base=localStorage.getItem(dbName+'-published')||'';}catch{}
-        if(key===contentKey(state.items)){rememberPublished(remote);remoteConflict=false;$('#sync-notice').hidden=true;}
+        if(key===contentKey(state.items)){rememberPublished(remote);remoteConflict=false;$('#sync-notice').hidden=true;publishState('웹과 일치 · '+state.items.length+'개','ok');}
         else if(key!==base){remoteConflict=true;$('#sync-notice').hidden=false;publishState('게시 자료와 로컬 자료가 다릅니다. 백업 메뉴에서 확인해주세요.','bad');}
         return remote;
       }
@@ -731,7 +742,8 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
       $('#upload-file').addEventListener('change',async ev=>{try{await readImage(ev.target.files[0]);$('#form-error').hidden=true;}catch(error){formError(error);}});$('#remove-upload').addEventListener('click',()=>{uploadImage='';uploadRatio=0;$('#upload-file').value='';editorDirty=true;refreshUpload();});
       ['dragenter','dragover'].forEach(type=>$('#upload-drop').addEventListener(type,ev=>{ev.preventDefault();$('#upload-drop').classList.add('dragging');}));['dragleave','drop'].forEach(type=>$('#upload-drop').addEventListener(type,ev=>{ev.preventDefault();$('#upload-drop').classList.remove('dragging');}));$('#upload-drop').addEventListener('drop',async ev=>{try{await readImage(ev.dataTransfer.files[0]);}catch(error){formError(error);}});
       $('#item-form').addEventListener('submit',async ev=>{ev.preventDefault();if(!requireAdmin())return;const button=$('#form-submit');button.disabled=true;$('#form-error').hidden=true;try{const f=ev.target.elements;const now=Date.now();const item=C.validateItem({id:editorItem?.id||C.uid(),title:f.title.value.trim(),kind:f.kind.value,category:f.category.value,subcategories:C.subcategories(f.subcategories.value),tool:f.tool.value.trim(),template:f.template.value.trim(),description:f.description.value.trim(),tags:C.tags(f.tags.value),image:await stashImage(uploadImage),ratio:uploadRatio||editorItem?.ratio||0,fields:editorFields(),favorite:editorItem?.favorite??false,copies:editorItem?.copies??0,createdAt:editorItem?.createdAt??now,updatedAt:now,sample:editorItem?.sample??false});await commit(items=>{if(editorItem)return items.map(i=>i.id===item.id?{...item,favorite:i.favorite,copies:i.copies}:i);if(items.length>=1000)throw Error('최대 1,000개까지 보관할 수 있습니다.');return [...items,item];});editorDirty=false;$('#editor').close();if(active?.id===item.id){active.dirty=false;await openDetail(item.id);}filter.kind=item.kind;filter.imageMode=item.image?'registered':'missing';filter.category='전체';filter.subcategory='전체';filter.query='';filter.saved=false;$('#search').value='';render();toast(editorItem?'수정 내용을 저장했습니다.':'프롬프트를 추가했습니다.');}catch(error){formError(error);}finally{button.disabled=false;}});
-      function showBackup(){$('#drive-section').hidden=!!initial.offline;$('.file-fallback').open=!!initial.offline;$('#backup-stats').textContent='전체 '+state.items.length+'개 · 저장한 자료 '+state.items.filter(i=>i.favorite).length+'개';$('#import-error').hidden=true;driveError('');$('#drive-backup').disabled=!isAdmin||initial.offline;$('#drive-refresh').disabled=!isAdmin||initial.offline;renderPublishPanel();$('#backup').showModal();refreshDriveList().catch(error=>driveError(error.message||'목록을 불러오지 못했습니다.'));}
+      function updateBackupStats(){const registered=state.items.filter(item=>item.kind==='image'&&item.image).length,missing=state.items.filter(item=>item.kind==='image'&&!item.image).length;$('#backup-registered').textContent=String(registered);$('#backup-missing').textContent=String(missing);$('#backup-total').textContent=String(state.items.length);}
+      function showBackup(){$('#drive-section').hidden=!!initial.offline;$('.file-fallback').open=!!initial.offline;updateBackupStats();$('#import-error').hidden=true;driveError('');$('#drive-backup').disabled=!isAdmin||initial.offline;$('#drive-refresh').disabled=!isAdmin||initial.offline;renderPublishPanel();$('#backup').showModal();refreshDriveList().catch(error=>driveError(error.message||'목록을 불러오지 못했습니다.'));}
       function download(content,name,mime){const blob=new Blob([content],{type:mime});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
       async function completeSnapshot(){
         const data=clone(snapshot());
