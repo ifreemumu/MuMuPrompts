@@ -6,7 +6,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://accounts.google.com; style-src 'unsafe-inline' 'self'; img-src 'self' data: blob: https://www.googleapis.com https://lh3.googleusercontent.com; connect-src 'self' https://www.googleapis.com https://oauth2.googleapis.com; frame-src https://accounts.google.com; font-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
   <title>MuMu Prompts — 나의 프롬프트 보관함</title>
   <meta name="description" content="텍스트와 이미지를 나누어 관리하는 프롬프트 보관함">
-  <meta name="theme-color" content="#a66cf0">
+  <meta name="theme-color" content="#f7f4eb">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="fonts/pretendard.css">
   <link rel="stylesheet" href="tokens.css">
@@ -20,41 +20,53 @@
     <div class="header-inner">
       <div class="header-left">
       <button class="brand" data-action="home" aria-label="MuMu Prompts 홈">
-        <span class="wordmark">MuMu <b>Prompts</b></span>
+        <span class="wordmark">MuMu <b>Prompts</b><span class="brand-dot" aria-hidden="true">.</span></span>
 
       </button>
 
       </div>
-      <label class="search search-command search-compact">
+      <div class="search search-command search-compact" role="search">
         <span id="search-icon"></span>
-        <span class="sr-only">프롬프트 검색</span>
-        <input id="search" type="search" placeholder="프롬프트, 해시태그, 카테고리 검색..." autocomplete="off">
-        <span class="search-hint" aria-hidden="true">SEARCH</span>
+        <label class="sr-only" for="search">프롬프트 검색</label>
+        <input id="search" type="search" placeholder="어떤 이미지를 만들고 싶나요?" autocomplete="off" aria-controls="gallery" aria-keyshortcuts="/">
+        <kbd class="search-hint" aria-hidden="true">/</kbd>
         <button class="clear-search" id="clear-search" type="button" aria-label="검색 지우기" hidden></button>
-      </label>
+      </div>
       <div class="header-actions">
-
-        <button class="pill" id="admin-nav" data-action="admin" aria-label="관리자 모드"><span data-icon="lock"></span><span class="backup-label">관리자</span></button><button class="pill admin-only" id="unimaged-nav" data-action="unimaged" aria-label="이미지 미등록 프롬프트 관리" aria-pressed="false" hidden><span data-icon="image"></span><span class="unimaged-label">이미지 미등록</span><span id="unimaged-count"></span></button><button class="pill admin-only" id="backup-nav" data-action="backup" aria-label="백업 및 복원" hidden><span data-icon="download"></span><span class="backup-label">백업</span></button>
-        <button class="pill yellow admin-only" id="add-nav" data-action="add" hidden><span data-icon="plus"></span>추가</button>
+        <button class="text-button" data-action="help">사용 방법</button>
+        <button class="pill" id="admin-nav" data-action="admin" aria-label="관리자 모드"><span data-icon="lock"></span><span class="backup-label">관리자</span></button>
       </div>
     </div>
-    <section class="filter-panel" aria-label="프롬프트 탐색">
-    <div class="filter-navigation"><div id="categories" class="categories"></div><div id="subcategories" class="subcategories" hidden aria-label="하위 메뉴"></div></div>
-    <div class="sort admin-only" aria-label="정렬" hidden><button data-sort="latest" class="active" aria-pressed="true">최근 추가</button><button data-sort="popular" aria-pressed="false" title="이 PC에서 많이 복사한 순서">많이 사용</button></div>
-  </section>
   </header>
-  <main id="main">
+  <main id="main" tabindex="-1">
     <p id="sync-notice" class="notice" role="status" hidden>게시 자료와 이 브라우저의 자료가 다릅니다. <button class="secondary" data-action="backup">백업 메뉴에서 비교하기</button></p>
-
-
-    <p class="tagline" id="banner-title">마음에 드는 <em>프롬프트</em>, 내 스타일로 바꿔 쓰세요.</p>
-    <div class="feed-tools"><p class="feed-title" id="feed-title">프롬프트를 불러오고 있습니다.</p><div><button data-action="clear-filters" id="clear-filters" hidden>필터 초기화</button></div></div>
-    <div class="loading" id="loading">프롬프트 보관함을 여는 중입니다.</div>
+    <section class="gallery-intro" aria-labelledby="banner-title">
+      <div><h1 class="tagline" id="banner-title">마음에 드는 이미지,<br><em>내 스타일의 프롬프트로.</em></h1><p class="intro-copy">이미지를 고르고, 내용을 바꾸고, 복사해서 사용하세요.</p></div>
+      <p class="intro-note"><span data-icon="copy"></span>로그인 없이 자유롭게 둘러보고 복사하세요.</p>
+    </section>
+    <section class="admin-toolbar" id="admin-toolbar" aria-label="관리자 도구" hidden>
+      <div class="admin-view-tabs"><span class="admin-mode-label">관리자</span><button class="view-tab" id="registered-nav" data-action="registered" aria-pressed="true">공개 목록</button><button class="view-tab" id="unimaged-nav" data-action="unimaged" aria-label="이미지 미등록 프롬프트 관리" aria-pressed="false" hidden><span class="unimaged-label">이미지 미등록</span><span id="unimaged-count"></span></button></div>
+      <div class="admin-actions"><button class="secondary" id="backup-nav" data-action="backup" aria-label="백업 및 복원" hidden><span data-icon="download"></span>백업</button><button class="primary" id="add-nav" data-action="add" hidden><span data-icon="plus"></span>프롬프트 추가</button></div>
+    </section>
+    <div class="gallery-workspace">
+      <aside class="browse-sidebar" aria-label="프롬프트 탐색">
+        <button class="category-toggle" id="category-toggle" aria-expanded="false" aria-controls="category-panel"><span>카테고리</span><span class="category-toggle-value" id="category-selection">전체</span><span aria-hidden="true">⌄</span></button>
+        <div id="category-panel" class="category-panel"><h2 class="sidebar-title">카테고리</h2><div id="categories" class="categories"></div><p class="sidebar-note">오늘 필요한 이미지의<br>프롬프트를 찾아보세요.</p></div>
+      </aside>
+      <div class="gallery-content">
+    <div class="feed-tools"><p class="feed-title" id="feed-title" role="status" aria-live="polite" aria-atomic="true">프롬프트를 불러오고 있습니다.</p><div class="feed-actions"><button data-action="clear-filters" id="clear-filters" hidden>필터 초기화</button><div class="sort" aria-label="정렬"><button data-sort="latest" class="active" aria-pressed="true">최근 추가</button><button data-sort="popular" aria-pressed="false" title="이 브라우저에서 많이 복사한 순서">많이 사용</button></div></div></div>
+    <div id="subcategories" class="subcategories" hidden aria-label="하위 메뉴"></div>
+    <p class="view-description" id="view-description" hidden></p>
+    <div class="loading" id="loading" role="status"><span class="loading-dot" aria-hidden="true"></span>프롬프트를 불러오고 있습니다.</div>
     <section class="gallery" id="gallery" aria-label="프롬프트 피드"></section>
     <section class="empty" id="empty" hidden><div data-icon="search"></div><h2 id="empty-title">검색 결과가 없습니다.</h2><p id="empty-copy">다른 단어를 검색하거나 필터를 초기화해보세요.</p><button class="primary" data-action="clear-filters" id="empty-action">전체 보기</button></section>
 
+      </div>
+    </div>
+    <footer class="gallery-footer"><span>MuMu Prompts <span aria-hidden="true">·</span> 아이디어를 나누는 프롬프트 보관함</span><button class="text-button" data-action="help">사용 방법</button></footer>
   </main>
-  <dialog id="detail" aria-label="프롬프트 상세"><div class="modal-header"><button class="back-button" data-action="close-detail"><span data-icon="arrow"></span>뒤로가기</button><span class="small-muted">프롬프트 워크스페이스</span><button class="icon-button" data-action="close-detail" aria-label="상세 닫기"><span data-icon="x"></span></button></div><div id="detail-body"></div></dialog>
+  <dialog id="help" class="compact-modal" aria-labelledby="help-title"><div class="modal-header"><h2 id="help-title">내 이미지로 만드는 세 단계</h2><button class="icon-button" data-action="close-help" aria-label="사용 방법 닫기"><span data-icon="x"></span></button></div><div class="modal-body"><ol class="help-steps"><li><strong>마음에 드는 이미지를 고르세요.</strong><p>카테고리나 검색으로 찾고, 카드를 눌러 프롬프트를 여세요.</p></li><li><strong>내 내용으로 바꾸세요.</strong><p>주제·문구 등 필수 항목을 채우면 최종 프롬프트에 바로 반영됩니다. 미리보기 이미지는 바뀌지 않습니다.</p></li><li><strong>복사해서 이미지 도구에 붙여 넣으세요.</strong><p>프롬프트 복사 버튼을 누른 뒤 사용하는 이미지 생성 도구에서 실행하세요.</p></li></ol><p class="notice">둘러보기와 복사는 로그인 없이 이용할 수 있습니다. 프롬프트 등록·수정과 이미지 관리는 관리자만 할 수 있습니다.</p></div></dialog>
+  <dialog id="detail" aria-label="프롬프트 상세"><div class="modal-header"><button class="back-button" data-action="close-detail"><span data-icon="arrow"></span>목록으로</button><div class="detail-header-actions"><button class="primary" data-action="copy"><span data-icon="copy"></span>프롬프트 복사</button><button class="icon-button" data-action="close-detail" aria-label="상세 닫기"><span data-icon="x"></span></button></div></div><div id="detail-body"></div></dialog>
   <dialog id="editor" class="compact-modal" aria-labelledby="editor-title"><div class="modal-header"><h2 id="editor-title">프롬프트 추가</h2><button class="icon-button" data-action="close-editor" aria-label="추가 창 닫기"><span data-icon="x"></span></button></div><div class="modal-body"><form id="item-form">
     <div class="upload-drop" id="upload-drop"><span data-icon="image"></span><span id="upload-label">이미지를 끌어 놓거나 선택하세요</span><img id="upload-preview" alt="선택한 이미지 미리보기" hidden><input type="file" id="upload-file" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="이미지 선택"><small>PNG · JPG · WebP · GIF, 최대 20MB. 긴 변 1400px으로 자동 축소되어 저장됩니다. 이미지 없이도 저장할 수 있습니다.</small><button class="secondary" id="remove-upload" type="button" hidden>이미지 제외</button></div>
     <div class="fields"><label class="field wide">제목<input name="title" maxlength="200" required placeholder="예: 봄소풍 안내 포스터"></label><input type="hidden" name="kind" value="image"><label class="field">카테고리<select name="category" id="form-category"></select></label><label class="field wide">하위 메뉴<input name="subcategories" maxlength="1200" list="subcategory-options" placeholder="예: 매장·업종 홍보, 행사·이벤트"><datalist id="subcategory-options"></datalist><span class="hint">쉼표로 나누어 입력하면 저장 후 이 상위 메뉴의 하위 메뉴로 자동 생성됩니다.</span></label><label class="field wide">사용 툴<input name="tool" maxlength="80" placeholder="예: ChatGPT, Midjourney"></label><details class="builder" id="prompt-builder"><summary>🎨 이미지 프롬프트 구성 도우미 <em>선택</em></summary><div class="builder-body"><p class="builder-note">필요한 항목만 체크하세요. 체크하는 즉시 아래 프롬프트가 다시 조립됩니다. 비워둔 값은 상세 화면에서 채워도 됩니다.</p><div id="builder-groups"></div><p class="builder-status" id="builder-status" hidden></p></div></details><div class="field wide"><label for="form-template">프롬프트</label><textarea name="template" id="form-template" rows="7" maxlength="50000" required placeholder="완성된 프롬프트를 붙여 넣거나, {{주제}}처럼 입력하세요."></textarea><div class="auto-field-actions"><button type="button" class="secondary" id="auto-fields">✨ 입력칸 자동 만들기</button><span class="auto-field-status" id="auto-field-status" role="status" aria-live="polite">프롬프트를 붙여 넣으면 자동 분석합니다.</span></div><span class="hint">[주제], 항목명: 값, {{주제}} 형식을 찾아 ‘내 상황에 맞게 바꾸기’ 입력칸으로 만듭니다.</span><span class="hint" id="detected-fields"></span></div><label class="field wide" id="preview-block" hidden>실제 만들어지는 프롬프트<textarea id="form-preview" class="prompt-preview" rows="6" readonly spellcheck="false" aria-label="완성 프롬프트 미리보기"></textarea><span class="hint" id="preview-note"></span></label><label class="field wide">설명<textarea name="description" rows="2" maxlength="3000" placeholder="활용 방법이나 기억할 내용을 적어두세요."></textarea></label><label class="field wide">해시태그<input name="tags" maxlength="500" placeholder="#포스터 #학교 #수채화"></label></div>

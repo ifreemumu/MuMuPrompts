@@ -56,3 +56,7 @@ JSON 백업과 HTML 저장은 이미지 원본을 포함합니다. 이미지 다
 ## 검증
 
 `node --test tests/regression.test.cjs`로 데이터 검증, 저장·복구 및 게시·백업 회귀 검사를 실행합니다.
+
+UI 구조와 토큰은 [DESIGN.md](DESIGN.md)에 정리되어 있습니다. 일반 사용자 화면은 이미지 갤러리이며, 관리자 도구는 로그인 후 별도 줄에 나타납니다. 모바일에서는 카테고리 버튼으로 목록을 펼칠 수 있습니다.
+
+운영 자료를 사용하지 않고 UI를 확인하려면 `node tests/ui-server.cjs 8093 admin` 또는 `node tests/ui-server.cjs 8094 public`을 실행합니다. 이 미리보기는 테스트용 localhost 저장소를 사용하며 Google에 연결하지 않습니다.

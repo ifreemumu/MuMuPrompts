@@ -1,6 +1,34 @@
-/* Hallmark · macrostructure: Workbench · tone: tactile-utilitarian · theme: studied-DNA (source: image) · studied: yes · DNA-source: image (user reference) · knobs: left-stack + right-masonry · contrast: pass (40–41) · nav/footer: preserved · slop: pass (42–49) · mobile: pass (34, 49, 50–57) */
-/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V4 */
+/* Hallmark · macrostructure: Portfolio Grid · theme: MuMu cream gallery · designed-as-app */
+/* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4 */
 :root {
+  --color-paper: oklch(96.5% 0.014 85);
+  --color-panel: oklch(99% 0.007 85);
+  --color-paper-2: oklch(93% 0.021 85);
+  --color-ink: oklch(26% 0.025 153);
+  --color-muted: oklch(46% 0.014 90);
+  --color-rule: oklch(85% 0.021 85);
+  --color-rule-strong: oklch(61% 0.02 85);
+  --color-accent: oklch(87% 0.13 93);
+  --color-accent-ink: oklch(26% 0.025 153);
+  --color-selected: oklch(35% 0.045 153);
+  --color-focus: oklch(42% 0.09 153);
+  --color-error: oklch(45% 0.14 29);
+  --color-error-surface: oklch(96% 0.018 29);
+  --color-success: oklch(36% 0.07 153);
+  --color-success-surface: oklch(94% 0.025 153);
+  --font-display: "Pretendard Variable", "Pretendard", system-ui, sans-serif;
+  --font-body: var(--font-display);
+  --font-wordmark: var(--font-display);
+  --text-small: 0.8125rem;
+  --text-base: 1rem;
+  --text-gallery-title: clamp(1.625rem, 2.6vw, 2.375rem);
+  --radius-control: 0.625rem;
+  --radius-card: 0.875rem;
+  --page-width: 96rem;
+  --page-gutter: clamp(1rem, 3vw, 2.5rem);
+  --shadow-card: 0 0.25rem 1rem oklch(26% 0.025 153 / 0.06);
+  --shadow-modal: 0 1.5rem 5rem oklch(26% 0.025 153 / 0.18);
+  --z-header: 10;
   --color-detail-paper: oklch(96% 0.014 82);
   --color-detail-panel: oklch(98.5% 0.009 82);
   --color-detail-image-surface: oklch(93% 0.018 82);

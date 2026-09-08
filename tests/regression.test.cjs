@@ -15,7 +15,8 @@ function harness(){
   vm.createContext(context);
   vm.runInContext(read('data/seeds.js'),context);
   vm.runInContext(read('js/core.js'),context);
-  const exposed=`window.testAPI={C,initial,writeStored,readStored,commit,snapshot,completeSnapshot,saveRecovery,loadPublished,checkPublished,contentKey,publishToDrive,rememberPublished,inlineResources, start,
+  const exposed=`window.testAPI={C,initial,writeStored,readStored,commit,snapshot,completeSnapshot,saveRecovery,loadPublished,checkPublished,contentKey,publishToDrive,rememberPublished,inlineResources, start,render,cardHTML,clearFilters,
+    setFilter(values){Object.assign(filter,values);},get filter(){return filter;},
     configure(options){if(options.items)state.items=options.items;if(options.mode)storageMode=options.mode;if(options.admin!==undefined)isAdmin=options.admin;if(options.offline!==undefined)initial.offline=options.offline;if(options.token)accessToken=options.token;},
     get items(){return state.items;},get conflict(){return remoteConflict;},get dbName(){return dbName;}};`;
   vm.runInContext(read('js/app.js').replace(/      start\(\);\s*\}\)\(\);\s*$/,exposed+'\n})();'),context);
@@ -48,6 +49,34 @@ test('image mode keeps unregistered prompts out of the public feed',()=>{
   const missing={...registered,id:'missing-image-test',title:'이미지 미등록 테스트',image:''};
   assert.deepEqual(api.C.filter([registered,missing],{imageMode:'registered'}).map(item=>item.id),[registered.id]);
   assert.deepEqual(api.C.filter([registered,missing],{imageMode:'missing'}).map(item=>item.id),[missing.id]);
+});
+test('public render cannot expose the missing-image view or admin tools',()=>{
+  const {api,nodes}=harness();const item=api.C.validateBackup(api.initial).find(i=>i.image);
+  api.configure({admin:false,items:[item,{...item,id:'private-missing',title:'Private missing prompt',image:''}]});
+  api.setFilter({imageMode:'missing'});api.render();
+  assert.equal(api.filter.imageMode,'registered');
+  assert.equal(nodes.get('admin-toolbar').hidden,true);
+  assert.ok(!nodes.get('gallery').innerHTML.includes('private-missing'));
+  assert.ok(!nodes.get('categories').innerHTML.includes('chip-count">2<'));
+});
+test('admin missing-image view and filtered empty state remain distinct',()=>{
+  const {api,nodes}=harness();const item=api.C.validateBackup(api.initial).find(i=>i.image);
+  api.configure({admin:true,items:[item,{...item,id:'private-missing',image:''}]});
+  api.setFilter({imageMode:'missing'});api.render();
+  assert.equal(nodes.get('admin-toolbar').hidden,false);
+  assert.equal(nodes.get('view-description').hidden,false);
+  assert.ok(nodes.get('gallery').innerHTML.includes('private-missing'));
+  api.setFilter({query:'no-match-unique-query'});api.render();
+  assert.equal(nodes.get('empty-title').textContent,'조건에 맞는 프롬프트가 없습니다.');
+  api.clearFilters();
+  assert.equal(api.filter.query,'');assert.equal(api.filter.imageMode,'missing');
+  assert.equal(nodes.get('empty').hidden,true);
+});
+test('gallery cards close their interactive wrapper and prioritize the first image',()=>{
+  const {api}=harness();const item=api.C.validateBackup(api.initial).find(i=>i.image);
+  assert.match(api.cardHTML(item,0),/loading="eager" fetchpriority="high"/);
+  assert.match(api.cardHTML(item,1),/loading="lazy"/);
+  assert.match(api.cardHTML(item,0),/<\/button><\/article>$/);
 });
 test('single-key fallback storage round-trips images and empty deletion',async()=>{
   const {api}=harness();api.configure({mode:'localStorage'});
