@@ -333,10 +333,13 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
         publishState('사이트에 반영하는 중입니다...','');
         try{
           await commitQueue.catch(()=>{});
-          const publishing=clone(state.items);
+          const publishing=clone(state.items).map(item=>({...item,favorite:false,copies:0}));
+          // Keep image references alongside the text records. This makes the
+          // published file self-contained whether an image is a bundled asset,
+          // a Drive file, or an inline upload.
+          const published=splitData(publishing);
           const payload=C.safeJSON({app:'mumu-prompts',version:3,datasetId:initial.datasetId,
-            publishedAt:new Date().toISOString(),
-            items:publishing.map(item=>({...item,favorite:false,copies:0})),images:[]});
+            publishedAt:new Date().toISOString(),items:published.items,images:published.images});
           const folder=await driveEnsureFolder();
           let fileId=await findDataFile();
           const saved=await driveUpload({name:PUBLISH_NAME,mime:'application/json',body:payload,

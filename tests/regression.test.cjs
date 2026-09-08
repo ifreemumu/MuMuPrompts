@@ -103,3 +103,14 @@ test('publication requests execute sequentially',async()=>{
   };
   await Promise.all([api.publishToDrive(),api.publishToDrive()]);assert.equal(uploads,2);assert.equal(max,1);
 });
+test('publication preserves image references in the published payload',async()=>{
+  const {api,context}=harness();const item={...api.C.validateBackup(api.initial)[0],image:'drive:test-image-file'};
+  api.configure({mode:'localStorage',admin:true,token:'test-only-token',items:[item]});let payload='';
+  context.fetch=async(url,options)=>{
+    if(url.includes('/upload/')){payload=options.body;return {ok:true,status:200,json:async()=>({id:'test-file'})};}
+    return {ok:true,status:200,json:async()=>({files:[{id:'test-folder'}]})};
+  };
+  await api.publishToDrive();const published=JSON.parse(payload.match(/\r\n\r\n(\{\"app\":\"mumu-prompts\"[\s\S]*\})\r\n--mumu/)[1]);
+  assert.equal(published.images[0].src,'drive:test-image-file');
+  assert.equal(api.C.validateBackup(published)[0].image,'drive:test-image-file');
+});
