@@ -277,7 +277,7 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
 
       let layoutPending=0;
       function layoutGallery(){
-        const gallery=$('#gallery');if(!gallery)return;
+        const gallery=$('#gallery');if(!gallery||!$('#detail').hidden)return;
         const styles=getComputedStyle(gallery);
         const rowHeight=parseFloat(styles.gridAutoRows)||4;
         const cards=$$('#gallery .card');
@@ -467,20 +467,31 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
           .slice(0,limit)
           .map(entry=>entry.candidate);
       }
+      let detailReturn={scrollY:0,trigger:null};
       async function openDetail(id){
         if(active?.dirty&&!(await confirmAction('저장하지 않은 수정 내용이 있습니다. 저장하지 않고 다른 자료를 열까요?','이동')))return;
         const item=state.items.find(i=>i.id===id);
         if(!item)return;
+        if($('#detail').hidden)detailReturn={scrollY:window.scrollY,trigger:document.activeElement};
         const similar=similarItems(item);
         const similarMarkup=similar.length
           ?similar.map(i=>'<button class="related-card" data-open="'+e(i.id)+'" aria-label="'+e(i.title)+' 열기">'+(i.image?'<img src="'+imageSrc(i.image)+'" loading="lazy" decoding="async" alt="'+e(i.title)+'">':'<span class="related-mini-text">IMAGE PROMPT</span>')+'<span class="related-card__title">'+e(i.title)+'</span></button>').join('')
           :'<p class="related-empty">아직 비슷한 이미지가 없습니다.</p>';
         active={id,draft:clone(item),dirty:false};
         $('#detail-body').innerHTML='<div class="detail-layout"><div class="detail-primary"><section class="detail-preview" aria-labelledby="selected-image-label"><div class="detail-preview-head"><span id="selected-image-label">선택 이미지</span><small>원본 미리보기</small></div>'+mediaHTML(item,true)+'<p class="preview-caption">'+(item.sample?'이 앱을 위해 별도로 만든 예제입니다. ':'')+'입력값을 바꾸면 프롬프트에 반영됩니다. 미리보기 이미지는 바뀌지 않습니다.</p></section><section class="detail-content" aria-labelledby="detail-title"><div class="detail-title-row"><h2 id="detail-title">'+e(item.title)+'</h2></div><div class="tags"><span class="tag">'+e(item.tool||'도구 자유 선택')+'</span><span class="tag">'+e(item.category)+'</span>'+item.tags.map(t=>'<span class="tag">#'+e(t)+'</span>').join('')+item.subcategories.map(s=>'<span class="tag subtag">/'+e(s)+'</span>').join('')+'</div><p class="detail-description">'+e(item.description)+'</p><div class="section-heading">내 상황에 맞게 바꾸기 <small id="field-count">'+fieldCountLabel(item.fields)+'</small></div><div class="field-groups" id="detail-fields">'+fieldGroupsHTML(item.fields)+'</div><div class="section-heading">최종 프롬프트 <small>입력 내용 자동 반영</small></div><textarea class="prompt-output" id="final-prompt" aria-label="최종 프롬프트" readonly spellcheck="false">'+e(C.resolve(item.template,item.fields))+'</textarea><div class="change-note" id="change-note"></div><button class="primary copy-button" data-action="copy">'+icon('copy')+'최종 프롬프트 복사하기</button><div class="actions">'+(isAdmin?'<button class="secondary" data-action="save-detail">'+icon('check')+'변경 저장</button>':'')+'<button class="secondary" data-action="reset-detail">입력 초기화</button></div>'+(isAdmin?'<details><summary>프롬프트 원문 편집</summary><textarea id="detail-template" class="form-control template-editor" maxlength="50000" aria-label="프롬프트 원문">'+e(item.template)+'</textarea><p class="small-muted" style="margin-top:8px">{{주제}}처럼 표시한 부분은 위에 입력칸이 생깁니다.</p></details><div class="actions"><button class="secondary" data-action="edit">제목·이미지 수정</button><button class="secondary" data-action="duplicate">복제</button><button class="secondary danger" data-action="delete">삭제</button></div>':'<p class="small-muted">입력값을 바꾸고 최종 프롬프트를 복사해 사용하세요. 자료를 고치거나 새로 추가하는 것은 관리자만 할 수 있습니다.</p>')+'</section></div><aside class="related" aria-labelledby="related-title"><div class="related-head"><h3 id="related-title">비슷한 이미지</h3><span class="related-count">'+similar.length+'개 추천</span></div><div class="related-grid">'+similarMarkup+'</div></aside></div>';
-        if(!$('#detail').open)$('#detail').showModal();$('#detail').scrollTop=0;updatePrompt();
+        $('#detail').hidden=false;updatePrompt();
+        window.scrollTo({top:0,behavior:'instant'});
+        $('#detail .back-button').focus({preventScroll:true});
       }
       function updatePrompt(){if(!active)return;$('#final-prompt').value=C.resolve(active.draft.template,active.draft.fields);const unfilled=active.draft.fields.filter(f=>!f.value.trim()).length;$('#change-note').textContent=(active.dirty?(isAdmin?'수정 중 · 변경 저장을 누르면 다음에도 유지됩니다.':'입력값이 반영되었습니다. 최종 프롬프트를 복사해 사용하세요.'):'')+(unfilled?'　미입력 '+unfilled+'개':'');}
-      async function closeDetail(){if(active?.dirty&&!(await confirmAction('저장하지 않은 수정 내용이 있습니다. 저장하지 않고 닫을까요?','닫기')))return;$('#detail').close();active=null;}
+      async function closeDetail(){
+        if($('#detail').hidden)return;
+        if(active?.dirty&&!(await confirmAction('저장하지 않은 수정 내용이 있습니다. 저장하지 않고 닫을까요?','닫기')))return;
+        $('#detail').hidden=true;active=null;layoutGallery();
+        window.scrollTo({top:detailReturn.scrollY,behavior:'instant'});
+        const returnTarget=detailReturn.trigger?.isConnected?detailReturn.trigger:$('#main');
+        returnTarget.focus({preventScroll:true});
+      }
       async function favorite(id){await commit(items=>items.map(i=>i.id===id?{...i,favorite:!i.favorite}:i),{content:false});const item=state.items.find(i=>i.id===id);if(active?.id===id){active.draft.favorite=item.favorite;const button=$('[data-detail-favorite]');if(button)button.setAttribute('aria-pressed',String(item.favorite));}toast(item.favorite?'보관함에 저장했습니다.':'보관함에서 해제했습니다.');}
       async function saveDetail(){if(!active)return;const draft=C.validateItem({...active.draft,updatedAt:Date.now()});await commit(items=>items.map(i=>i.id===draft.id?{...draft,favorite:i.favorite,copies:i.copies}:i));active.draft=clone(state.items.find(i=>i.id===draft.id));active.dirty=false;updatePrompt();toast(storageMode==='memory'?'현재 창에 반영했습니다. 파일로 백업해주세요.':'변경 내용을 저장했습니다.');}
       let copyFeedbackTimer;
@@ -750,7 +761,8 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
         const button=$('#category-toggle');button.setAttribute('aria-expanded',String(button.getAttribute('aria-expanded')!=='true'));
       });
       document.addEventListener('keydown',event=>{
-        if(event.key==='/'&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&!$('dialog[open]')&&!event.target.closest('input,textarea,select,[contenteditable]')){event.preventDefault();$('#search').focus();}
+        if(event.key==='/'&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&$('#detail').hidden&&!$('dialog[open]')&&!event.target.closest('input,textarea,select,[contenteditable]')){event.preventDefault();$('#search').focus();}
+        if(event.key==='Escape'&&!event.defaultPrevented&&!$('#detail').hidden&&!$('dialog[open]')){event.preventDefault();closeDetail();}
         if(event.key==='Escape'&&event.target===$('#search')&&filter.query){event.preventDefault();clearTimeout(searchTimer);filter.query='';$('#search').value='';render();}
       });
       document.addEventListener('click',async ev=>{const b=ev.target.closest('button');if(!b)return;try{
@@ -764,7 +776,7 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
         if(b.dataset.category){filter.category=b.dataset.category;filter.subcategory='전체';render();return;}if(b.dataset.subcategory){filter.subcategory=b.dataset.subcategory;render();return;}if(b.dataset.sort){filter.sort=b.dataset.sort;render();return;}if(b.dataset.open){await openDetail(b.dataset.open);return;}
         if(['add','edit','duplicate','delete','save-detail','unimaged'].includes(b.dataset.action)&&!requireAdmin())return;switch(b.dataset.action){case 'admin':if(!isAdmin)openAdmin();else if(await confirmAction('관리자 모드를 끝낼까요? 다시 쓰려면 구글 계정으로 로그인해야 합니다.','로그아웃','관리자 로그아웃'))googleLogout();break;case 'close-admin':$('#admin').close();break;case 'home':filter.kind='image';filter.imageMode='registered';clearFilters();window.scrollTo({top:0});break;case 'clear-filters':clearFilters();break;case 'unimaged':filter.imageMode=filter.imageMode==='missing'?'registered':'missing';filter.category='전체';filter.subcategory='전체';render();break;case 'add':openEditor();break;case 'backup':showBackup();break;case 'close-backup':$('#backup').close();break;case 'close-detail':await closeDetail();break;case 'close-editor':await closeEditor();break;case 'copy':await copyPrompt();break;case 'save-detail':await saveDetail();break;case 'reset-detail':if(active.dirty&&!(await confirmAction('입력값과 원문을 마지막으로 저장한 상태로 되돌릴까요?','초기화')))break;active.dirty=false;await openDetail(active.id);break;case 'edit':if(active.dirty&&!(await confirmAction('현재 입력값을 먼저 저장하고 제목·이미지를 수정할까요?','저장 후 수정')))break;if(active.dirty)await saveDetail();openEditor(state.items.find(i=>i.id===active.id));break;case 'duplicate':{const copy=C.validateItem({...clone(active.draft),id:C.uid(),title:(active.draft.title.slice(0,190)+' (복제)'),favorite:false,copies:0,createdAt:Date.now(),updatedAt:Date.now(),sample:false});await commit(items=>{if(items.length>=1000)throw Error('최대 1,000개까지 보관할 수 있습니다.');return [...items,copy];});active.dirty=false;await openDetail(copy.id);toast('현재 입력값으로 복제했습니다.');break;}case 'delete':{const id=active.id;if(await confirmAction('“'+active.draft.title+'” 자료를 삭제할까요? 삭제 전 자료를 보관하며 백업 메뉴에서 복구할 수 있습니다.','삭제','자료 삭제')){await saveRecovery();await commit(items=>items.filter(i=>i.id!==id));active.dirty=false;await closeDetail();toast('자료를 삭제했습니다.');}break;}case 'export-json':await exportJSON();break;case 'export-html':await exportHTML();break;}
       }catch(error){if(error.name==='QuotaExceededError'||error.name==='UnknownError')storageError(error);else toast(error.message||'작업을 완료하지 못했습니다. 다시 시도해주세요.');}});
-      $('#detail').addEventListener('cancel',ev=>{ev.preventDefault();closeDetail();});$('#editor').addEventListener('cancel',ev=>{ev.preventDefault();closeEditor();});
+      $('#editor').addEventListener('cancel',ev=>{ev.preventDefault();closeEditor();});
       window.addEventListener('beforeunload',ev=>{if(active?.dirty||editorDirty){ev.preventDefault();ev.returnValue='';}});
       async function start(){
         restoreSession();

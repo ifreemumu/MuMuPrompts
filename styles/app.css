@@ -668,3 +668,38 @@ dialog::backdrop{background:var(--color-detail-backdrop)}
   .card-open{transition:none}
   .card-open:hover{transform:none}
 }
+
+/* Hallmark · component: detail workspace · design-system: DESIGN.md
+ * Restore the user's full-page workbench, narrow editor and full-width images.
+ * Existing interaction states and image effects retained. Pre-emit: P5 H5 E4 S5 R5 V4. */
+body:has(#detail:not([hidden])) > :is(.topbar,#main,.skip-link){display:none}
+#detail.detail-page{
+  position:static;
+  width:100%;max-width:none;
+  height:auto;min-height:100dvh;max-height:none;
+  margin:0;padding:0;overflow:visible;
+  border:0;border-radius:0;box-shadow:none;
+  background:var(--color-detail-paper);color:var(--color-detail-ink);
+}
+#detail .modal-header{top:0}
+#detail .detail-layout{max-width:105rem;margin-inline:auto;grid-template-columns:minmax(0,1fr)}
+#detail .detail-preview{
+  padding:var(--space-sm);
+  border:var(--rule-hairline) solid var(--color-detail-rule-strong);
+  border-radius:var(--radius-detail-frame);
+  background:var(--color-detail-image-surface);color:var(--color-detail-ink);
+}
+#detail .detail-preview img{width:100%;height:auto;max-height:none;margin:0;background:var(--color-detail-panel)}
+#detail .related{position:static}
+#detail .related-grid{columns:1;column-gap:var(--space-md)}
+#detail .related-head h3{font-size:var(--text-related-title);line-height:var(--leading-heading)}
+@media(min-width:40rem){
+  #detail .related-grid{columns:2}
+}
+@media(min-width:60rem){
+  #detail .detail-layout{grid-template-columns:minmax(0,min(30rem,36%)) minmax(0,1fr)}
+}
+@media(min-width:90rem){
+  #detail .detail-layout{grid-template-columns:minmax(0,31rem) minmax(0,1fr)}
+  #detail .related-grid{columns:3}
+}

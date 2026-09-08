@@ -7,15 +7,15 @@ const root=path.resolve(__dirname,'..');
 const read=file=>fs.readFileSync(path.join(root,file),'utf8');
 function harness(){
   const nodes=new Map(),saved=new Map(),timers=[];
-  function node(id){if(!nodes.has(id))nodes.set(id,{textContent:'',value:'',innerHTML:'',hidden:false,dataset:{},style:{},classList:{toggle(){},add(){},remove(){}},addEventListener(){},setAttribute(){},removeAttribute(){},querySelector(){return node('child');},querySelectorAll(){return [];},append(){},focus(){},showModal(){},close(){}});return nodes.get(id);}
-  const document={documentElement:{outerHTML:read('index.html')},getElementById:node,querySelector:s=>node(s.slice(1)),querySelectorAll:()=>[],addEventListener(){},body:{append(){}}};
+  function node(id){if(!nodes.has(id))nodes.set(id,{textContent:'',value:'',innerHTML:'',hidden:id==='detail',dataset:{},style:{},listeners:{},isConnected:true,classList:{toggle(){},add(){},remove(){}},addEventListener(type,fn){this.listeners[type]=fn;},setAttribute(){},removeAttribute(){},querySelector(){return node('child');},querySelectorAll(){return [];},append(){},focus(){document.activeElement=this;},showModal(){this.open=true;},close(){this.open=false;}});return nodes.get(id);}
+  const document={documentElement:{outerHTML:read('index.html')},getElementById:node,querySelector:s=>s==='dialog[open]'?[...nodes.values()].find(n=>n.open)||null:node(s.slice(1)),querySelectorAll:()=>[],listeners:{},addEventListener(type,fn){this.listeners[type]=fn;},body:{append(){}}};
   const storage={getItem:k=>saved.get(k)||null,setItem:(k,v)=>saved.set(k,v),removeItem:k=>saved.delete(k)};
-  const context={document,window:{addEventListener(){}},structuredClone,crypto:require('node:crypto').webcrypto,console,Blob,TextEncoder,AbortSignal,
+  const context={document,window:{scrollY:0,scrollTo({top}){this.scrollY=top;},addEventListener(){}},getComputedStyle:()=>({display:'block'}),structuredClone,crypto:require('node:crypto').webcrypto,console,Blob,TextEncoder,AbortSignal,
     localStorage:storage,sessionStorage:storage,setTimeout:(fn,delay)=>{timers.push({fn,delay});return timers.length;},clearTimeout(){},requestAnimationFrame(){return 1;},cancelAnimationFrame(){},fetch:async()=>{throw Error('Network disabled in tests');}};
   vm.createContext(context);
   vm.runInContext(read('data/seeds.js'),context);
   vm.runInContext(read('js/core.js'),context);
-  const exposed=`window.testAPI={C,initial,writeStored,readStored,commit,snapshot,completeSnapshot,saveRecovery,loadPublished,checkPublished,contentKey,publishToDrive,rememberPublished,inlineResources, start,render,cardHTML,clearFilters,
+  const exposed=`window.testAPI={C,initial,writeStored,readStored,commit,snapshot,completeSnapshot,saveRecovery,loadPublished,checkPublished,contentKey,publishToDrive,rememberPublished,inlineResources, start,render,cardHTML,clearFilters,openDetail,closeDetail,get active(){return active;},
     setFilter(values){Object.assign(filter,values);},get filter(){return filter;},
     configure(options){if(options.items)state.items=options.items;if(options.mode)storageMode=options.mode;if(options.admin!==undefined)isAdmin=options.admin;if(options.offline!==undefined)initial.offline=options.offline;if(options.token)accessToken=options.token;},
     get items(){return state.items;},get conflict(){return remoteConflict;},get dbName(){return dbName;}};`;
@@ -85,6 +85,41 @@ test('image ratio metadata reserves space without overriding the loaded image ra
     assert.ok(api.cardHTML({...item,ratio}).includes('style="aspect-ratio:auto '+ratio.toFixed(4)+'"'));
   }
   assert.ok(!api.cardHTML({...item,ratio:0}).includes('aspect-ratio:'));
+});
+test('detail is a page and returning restores gallery scroll and focus',async()=>{
+  assert.match(read('index.html'),/<section id="detail"[^>]*role="main"[^>]*hidden>/);
+  assert.doesNotMatch(read('index.html'),/<dialog id="detail"/);
+  const {api,nodes,context}=harness();const items=api.C.validateBackup(api.initial).filter(i=>i.image).slice(0,2);
+  api.configure({items,admin:false});context.window.scrollY=640;
+  const trigger=context.document.getElementById('test-gallery-card');trigger.focus();
+  context.document.getElementById('detail').showModal=()=>{throw Error('Detail must not open as a modal');};
+  await api.openDetail(items[0].id);
+  assert.equal(nodes.get('detail').hidden,false);assert.equal(context.window.scrollY,0);
+  assert.ok(nodes.get('detail-body').innerHTML.includes('detail-primary'));
+  context.window.scrollY=1200;await api.openDetail(items[1].id);
+  assert.equal(context.window.scrollY,0);
+  await api.closeDetail();
+  assert.equal(nodes.get('detail').hidden,true);assert.equal(api.active,null);
+  assert.equal(context.window.scrollY,640);assert.equal(context.document.activeElement,trigger);
+});
+test('detail keeps unsaved edits when the leave confirmation is cancelled',async()=>{
+  const {api,nodes}=harness();const items=api.C.validateBackup(api.initial).slice(0,2);api.configure({items});
+  await api.openDetail(items[0].id);api.active.dirty=true;
+  const closing=api.closeDetail();nodes.get('confirm-no').listeners.click();await closing;
+  assert.equal(nodes.get('detail').hidden,false);assert.equal(api.active.dirty,true);
+  const switching=api.openDetail(items[1].id);nodes.get('confirm-no').listeners.click();await switching;
+  assert.equal(api.active.id,items[0].id);
+  const leaving=api.closeDetail();nodes.get('confirm-yes').listeners.click();await leaving;
+  assert.equal(nodes.get('detail').hidden,true);
+});
+test('Escape leaves the detail page but does not dismiss a nested dialog',async()=>{
+  const {api,nodes,context}=harness();const item=api.C.validateBackup(api.initial)[0];api.configure({items:[item]});
+  await api.openDetail(item.id);
+  const event={key:'Escape',target:nodes.get('detail'),preventDefault(){this.defaultPrevented=true;}};
+  nodes.get('editor').showModal();context.document.listeners.keydown(event);
+  assert.equal(nodes.get('detail').hidden,false);assert.equal(event.defaultPrevented,undefined);
+  nodes.get('editor').close();context.document.listeners.keydown(event);
+  assert.equal(nodes.get('detail').hidden,true);assert.equal(event.defaultPrevented,true);
 });
 test('single-key fallback storage round-trips images and empty deletion',async()=>{
   const {api}=harness();api.configure({mode:'localStorage'});
