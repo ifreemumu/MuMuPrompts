@@ -229,7 +229,7 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
       async function driveSaveBackup(){
         const folder=await driveEnsureFolder();
         await commitQueue.catch(()=>{});
-        const backup=await completeSnapshot();
+        const backup=clone(snapshot());
         const payload=C.safeJSON(backup);
         const boundary='mumu'+Math.random().toString(36).slice(2);
         const metadata={name:'MuMu-Prompts-'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')+'.json',parents:[folder],mimeType:'application/json'};
@@ -237,7 +237,7 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
           '\r\n--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+payload+'\r\n--'+boundary+'--';
         const saved=await(await driveCall(DRIVE_UPLOAD+'/files?uploadType=multipart&fields=id,name',{method:'POST',
           headers:{'Content-Type':'multipart/related; boundary='+boundary},body})).json();
-        return {...saved,warnings:backup.backupWarnings?.length||0};
+        return saved;
       }
       async function driveListBackups(){
         const folder=await driveEnsureFolder();
@@ -265,7 +265,7 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
       }
       $('#drive-backup').addEventListener('click',async()=>{
         const button=$('#drive-backup');button.disabled=true;driveError('');
-        try{if(!requireAdmin())return;const saved=await driveSaveBackup();toast('드라이브에 '+saved.name+' 으로 백업했습니다.'+(saved.warnings?' 이미지 '+saved.warnings+'개는 원본 연결 주소로 보관했습니다.':''));await refreshDriveList();}
+        try{if(!requireAdmin())return;const saved=await driveSaveBackup();toast('드라이브에 '+saved.name+' 으로 백업했습니다.');await refreshDriveList();}
         catch(error){driveError(error.message||'백업하지 못했습니다.');}
         finally{button.disabled=false;}
       });

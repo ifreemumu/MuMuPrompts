@@ -177,6 +177,10 @@ test('remote conflict is detected without mutating local content',async()=>{
 test('offline mode does not fetch published data',async()=>{
   const {api,context}=harness();let requests=0;context.fetch=async()=>{requests++;throw Error();};api.configure({offline:true});assert.equal(await api.loadPublished(),null);assert.equal(requests,0);
 });
+test('drive backups keep image references compact instead of duplicating image bytes',()=>{
+  const app=read('js/app.js');
+  assert.match(app,/async function driveSaveBackup\(\)[\s\S]*?const backup=clone\(snapshot\(\)\)/);
+});
 test('signed-in admins can fetch published data when the public API-key request fails',async()=>{
   const {api,context}=harness();const items=api.C.validateBackup(api.initial).slice(0,1);let requests=0,auth='';
   api.configure({token:'test-only-token'});
