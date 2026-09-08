@@ -2688,6 +2688,12 @@ const visible=C.filter(state.items,filter);$('#loading').hidden=true;
       if(document.fonts&&document.fonts.ready)document.fonts.ready.then(scheduleLayout).catch(()=>{});
 
       const PUBLISH_NAME='prompts.json';
+      function mergeMissingCuratedSeeds(data){
+        const existing=C.validateBackup(data);
+        const existingIds=new Set(existing.map(item=>item.id));
+        const seeds=C.validateBackup(initial).filter(item=>item.id.startsWith('mumu-curated-')||item.id.startsWith('mumu-text-')||item.id.startsWith('mumu-poster-')||item.id.startsWith('mumu-stamp-'));
+        return [...existing,...seeds.filter(seed=>!existingIds.has(seed.id))];
+      }
       const imageSrc=ref=>/^drive:/.test(ref)?'https://lh3.googleusercontent.com/d/'+ref.slice(6)+'=w1600':ref;
       let publishTimer=0;
       function publishState(message,tone){
@@ -2762,7 +2768,7 @@ const visible=C.filter(state.items,filter);$('#loading').hidden=true;
         try{
           const response=await fetch(DRIVE_API+'/files/'+encodeURIComponent(GOOGLE.dataFileId)+'?alt=media&key='+encodeURIComponent(GOOGLE.apiKey));
           if(!response.ok)return null;
-          return C.validateBackup(await response.json());
+          return mergeMissingCuratedSeeds(await response.json());
         }catch{return null;}
       }
       function downloadConfigured(){
@@ -3057,9 +3063,8 @@ const visible=C.filter(state.items,filter);$('#loading').hidden=true;
          const stored=await readStored();
          if(!stored)return;
          const existing=C.validateBackup(stored);
-         const seeds=C.validateBackup(initial).filter(item=>item.id.startsWith('mumu-curated-')||item.id.startsWith('mumu-text-')||item.id.startsWith('mumu-poster-')||item.id.startsWith('mumu-stamp-'));
-         const missing=seeds.filter(seed=>!existing.some(item=>item.id===seed.id));
-         if(missing.length)await writeStored([...existing,...missing]);
+         const merged=mergeMissingCuratedSeeds(stored);
+         if(merged.length>existing.length)await writeStored(merged);
        }
        mergeCuratedSeeds().then(()=>start()).catch(()=>start());
     })();
