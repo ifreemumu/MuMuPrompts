@@ -51,6 +51,15 @@ test('recent image prompts are bundled with their final images',()=>{
   }
   assert.equal(items.find(item=>item.id==='mumu-stamp-crayon-emotion9-woman').image,'assets/mumu-crayon-emotion9-woman-v2.png');
 });
+
+test('short prompt fields start compact and grow with their content',()=>{
+  const app=fs.readFileSync(path.join(root,'js','app.js'),'utf8');
+  const css=fs.readFileSync(path.join(root,'styles','app.css'),'utf8');
+  assert.match(app,/rows="1"/);
+  assert.match(app,/box\.style\.height='auto'/);
+  assert.match(app,/requestAnimationFrame\(\(\)=>\$\$\('#detail-fields textarea'\)\.forEach\(growField\)\)/);
+  assert.match(css,/\.field textarea\{min-height:48px;max-height:320px;/);
+});
 test('backup validation preserves old sample IDs and empty datasets',()=>{
   const {api}=harness();const item={...api.initial.items[0],id:'demo-cafe-poster'};
   assert.equal(api.C.validateBackup({app:'mumu-prompts',version:3,items:[item]}).length,1);
