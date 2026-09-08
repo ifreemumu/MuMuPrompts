@@ -159,9 +159,11 @@ test('copy statistics do not schedule publication',async()=>{
   await api.commit(items=>items.map(i=>({...i,copies:i.copies+1})),{content:false});assert.equal(timers.length,0);
   await api.commit(items=>items.map(i=>({...i,title:'Changed'})));assert.equal(timers.filter(t=>t.delay===1200).length,1);
 });
-test('backup refuses missing image content',async()=>{
+test('backup preserves an inaccessible image reference instead of losing the dataset',async()=>{
   const {api}=harness();api.configure({items:api.C.validateBackup(api.initial).slice(0,1)});
-  await assert.rejects(api.completeSnapshot(),/백업하지 못했습니다/);
+  const backup=await api.completeSnapshot();
+  assert.equal(api.C.validateBackup(backup).length,1);
+  assert.equal(backup.backupWarnings.length,1);
 });
 test('inline images survive portable backup',async()=>{
   const {api}=harness();const item={...api.initial.items[0],image:'data:image/png;base64,YQ=='};api.configure({items:[item]});
@@ -174,6 +176,12 @@ test('remote conflict is detected without mutating local content',async()=>{
 });
 test('offline mode does not fetch published data',async()=>{
   const {api,context}=harness();let requests=0;context.fetch=async()=>{requests++;throw Error();};api.configure({offline:true});assert.equal(await api.loadPublished(),null);assert.equal(requests,0);
+});
+test('signed-in admins can fetch published data when the public API-key request fails',async()=>{
+  const {api,context}=harness();const items=api.C.validateBackup(api.initial).slice(0,1);let requests=0,auth='';
+  api.configure({token:'test-only-token'});
+  context.fetch=async(_url,options={})=>{requests++;if(requests===1)return {ok:false,status:403};auth=options.headers.Authorization;return {ok:true,status:200,json:async()=>({app:'mumu-prompts',version:3,items})};};
+  const remote=await api.loadPublished();assert.ok(remote.some(item=>item.id===items[0].id));assert.equal(auth,'Bearer test-only-token');
 });
 test('recovery snapshot retains pre-replacement data',async()=>{
   const {api,saved}=harness();api.configure({mode:'localStorage',items:api.C.validateBackup(api.initial).slice(0,2)});await api.saveRecovery();await api.commit(()=>[],{content:false});assert.equal(JSON.parse(saved.get(api.dbName+'-recovery')).items.length,2);

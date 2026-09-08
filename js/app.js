@@ -229,14 +229,15 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
       async function driveSaveBackup(){
         const folder=await driveEnsureFolder();
         await commitQueue.catch(()=>{});
-        const payload=C.safeJSON(await completeSnapshot());
+        const backup=await completeSnapshot();
+        const payload=C.safeJSON(backup);
         const boundary='mumu'+Math.random().toString(36).slice(2);
         const metadata={name:'MuMu-Prompts-'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')+'.json',parents:[folder],mimeType:'application/json'};
         const body='--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(metadata)+
           '\r\n--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+payload+'\r\n--'+boundary+'--';
         const saved=await(await driveCall(DRIVE_UPLOAD+'/files?uploadType=multipart&fields=id,name',{method:'POST',
           headers:{'Content-Type':'multipart/related; boundary='+boundary},body})).json();
-        return saved;
+        return {...saved,warnings:backup.backupWarnings?.length||0};
       }
       async function driveListBackups(){
         const folder=await driveEnsureFolder();
@@ -264,7 +265,7 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
       }
       $('#drive-backup').addEventListener('click',async()=>{
         const button=$('#drive-backup');button.disabled=true;driveError('');
-        try{if(!requireAdmin())return;const saved=await driveSaveBackup();toast('드라이브에 '+saved.name+' 으로 백업했습니다.');await refreshDriveList();}
+        try{if(!requireAdmin())return;const saved=await driveSaveBackup();toast('드라이브에 '+saved.name+' 으로 백업했습니다.'+(saved.warnings?' 이미지 '+saved.warnings+'개는 원본 연결 주소로 보관했습니다.':''));await refreshDriveList();}
         catch(error){driveError(error.message||'백업하지 못했습니다.');}
         finally{button.disabled=false;}
       });
@@ -382,7 +383,9 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
       async function loadPublished(){
         if(initial.offline||!GOOGLE.dataFileId)return null;
         try{
-          const response=await fetch(DRIVE_API+'/files/'+encodeURIComponent(GOOGLE.dataFileId)+'?alt=media&key='+encodeURIComponent(GOOGLE.apiKey),{signal:AbortSignal.timeout(10000)});
+          const fileUrl=DRIVE_API+'/files/'+encodeURIComponent(GOOGLE.dataFileId)+'?alt=media';
+          let response=await fetch(fileUrl+'&key='+encodeURIComponent(GOOGLE.apiKey),{signal:AbortSignal.timeout(10000)});
+          if(!response.ok&&accessToken)response=await driveCall(fileUrl);
           if(!response.ok)return null;
           return mergeCuratedSeeds(await response.json());
         }catch{return null;}
@@ -732,6 +735,7 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
       function download(content,name,mime){const blob=new Blob([content],{type:mime});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
       async function completeSnapshot(){
         const data=clone(snapshot());
+        const skipped=[];
         for(const asset of data.images){
           if(asset.src.startsWith('data:'))continue;
           const url=asset.src.startsWith('drive:')?DRIVE_API+'/files/'+encodeURIComponent(asset.src.slice(6))+'?alt=media&key='+encodeURIComponent(GOOGLE.apiKey):asset.src;
@@ -741,8 +745,9 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
             const blob=await response.blob();
             asset.src=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(blob);});
             if(!C.validImage(asset.src))throw Error();
-          }catch{throw Error('이미지 '+asset.id+'을 백업하지 못했습니다. 연결을 확인한 뒤 다시 시도해주세요.');}
+          }catch{skipped.push(asset.id);}
         }
+        if(skipped.length)data.backupWarnings=skipped;
         if(new Blob([C.safeJSON(data)]).size>190*1024*1024)throw Error('백업 용량이 너무 큽니다. 이미지를 줄여주세요.');
         return data;
       }
