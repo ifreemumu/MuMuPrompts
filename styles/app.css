@@ -381,8 +381,41 @@
       #detail .detail-layout{grid-template-columns:minmax(22rem,31rem) minmax(0,1fr)}
       #detail .related-grid{columns:3}
     }
+    /* 관리자 편집기 — 자동 분류 결과 확인·수정 */
+    #detected-fields{display:block;margin-top:10px;border:1px solid #d5d9c9;border-radius:10px;background:#fbfaf3;padding:10px 11px}
+    .detect-lead{display:block;font-size:12px;font-weight:700;color:var(--muted);line-height:1.6;margin-bottom:8px}
+    .detect-lead b{color:#8a6a12}
+    .detect-lead small{font-weight:500;letter-spacing:-.2px}
+    .detect-chips{display:flex;flex-wrap:wrap;gap:5px}
+    .detect-chip{display:inline-flex;align-items:center;gap:5px;min-height:28px;border:1px solid #c9cebb;border-radius:20px;background:var(--panel);padding:3px 10px 3px 4px;font-size:12px;font-weight:650;line-height:1.5}
+    .detect-chip i{font-style:normal;border-radius:20px;padding:2px 6px;font-size:10px;font-weight:800;letter-spacing:.02em}
+    .detect-chip.req{border-color:#dcbc55;background:#fffdf2}
+    .detect-chip.req i{background:#e0b93f;color:#3a2f0c}
+    .detect-chip.opt{color:var(--muted)}
+    .detect-chip.opt i{background:#e6e8dc;color:#5b6154}
+    .detect-chip:hover{border-color:var(--line);background:#f4f1e4}
+    /* 내 상황에 맞게 바꾸기 — 필수/선택 항목 그룹 */
+    .field-groups{display:flex;flex-direction:column;gap:14px}
+    .field-group{border:1px solid #d5d9c9;border-radius:12px;background:#fdfcf6;padding:14px 15px 15px}
+    .field-group.is-required{border-color:#d9b64a;background:#fffdf2;box-shadow:inset 3px 0 0 #e0b93f}
+    .field-group-head,.field-group>summary{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;font-size:14px;font-weight:800;margin:0 0 12px;list-style:none}
+    .field-group>summary{cursor:pointer;margin:0}
+    .field-group>summary::-webkit-details-marker{display:none}
+    .field-group>summary::after{content:'펼치기';margin-left:auto;font-size:12px;font-weight:700;color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+    .field-group[open]>summary{margin-bottom:12px}
+    .field-group[open]>summary::after{content:'접기'}
+    .field-group-head small,.field-group>summary small{font-size:12px;font-weight:500;color:var(--muted);letter-spacing:-.2px}
+    .field-flag{flex-shrink:0;border-radius:5px;padding:3px 7px;font-size:11px;font-weight:800;letter-spacing:.02em;line-height:1.4}
+    .field-flag.req{background:#e0b93f;color:#3a2f0c}
+    .field-flag.opt{background:#e6e8dc;color:#5b6154}
+    .field-group .fields{margin:0}
+    .field-group .field{gap:8px}
+    .detail-field textarea{min-height:96px;max-height:320px;padding:12px 13px;font-size:15px;line-height:1.7;resize:vertical;overflow-y:auto}
+    .detail-field textarea::placeholder{color:#a6ab9c;font-size:14px}
+    .detail-field textarea:focus{background:#fff}
+    @media(max-width:520px){.field-group{padding:12px 11px 13px}.field-group-head,.field-group>summary{font-size:13px;gap:6px}}
     @media (pointer:coarse){#detail button,#detail summary{min-height:var(--control-lg)}}
     @media (prefers-reduced-motion:reduce){#detail .related-card,#detail .primary,#detail .secondary{transition-duration:var(--dur-reduced)}#detail .related-card:hover,#detail .primary:hover,#detail .secondary:hover{transform:none}}
-  
+
 
 .image-error{display:block;padding:28px 16px;background:#fff4df;color:#74401e;text-align:center;cursor:pointer;min-height:100px}.image-error:focus-visible{outline:3px solid #2669ae}

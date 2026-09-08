@@ -11,7 +11,17 @@
       const uid=()=>typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
       const esc=(value)=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
       function keys(template){return [...new Set(Array.from(template.matchAll(/\{\{\s*([^{}]+?)\s*\}\}/g),m=>m[1].trim()))];}
-      function fieldsFor(template,old=[]){return keys(template).map(key=>({key,label:key,value:old.find(f=>f.key===key)?.value??(key==='제외 요소'?old.find(f=>f.key==='원치 않는 요소')?.value:undefined)??''}));}
+      const OPTIONAL_FIELD_HINTS=['스타일','색','팔레트','구도','레이아웃','배치','조판','배경','조명','명암','카메라','촬영','각도','크롭','질감','재질','종이','마감','외곽선','선화','채색','타이포','글꼴','폰트','비율','크기','위치','출력','해상도','제외','금지','원치 않는','네거티브','규칙','처리','분위기','무드','여백','장식','그래픽 요소','완성도','점검','형식','방식','기법','옵션','참고','유지','버전','공통','품질','서명','워터마크'];
+      const REQUIRED_FIELD_HINTS=['제목','주제','문구','카피','글귀','이름','상호','브랜드','메뉴명','제품명','음식명','음료','내용','설명','가격','주소','전화','문의','영업','기간','날짜','대상','정보','데이터','헤드라인','슬로건','태그라인','캡션','버튼','CTA','라벨','섹션','단계','특징','혜택','성분','목적','장면','핵심','메인','인물','캐릭터','텍스트'];
+      const LONG_VALUE_HINT=60;
+      function fieldRequired(field){
+        if(typeof field?.required==='boolean')return field.required;
+        const key=String(field?.key??field?.label??'');
+        if(OPTIONAL_FIELD_HINTS.some(hint=>key.includes(hint)))return false;
+        if(REQUIRED_FIELD_HINTS.some(hint=>key.includes(hint)))return true;
+        return String(field?.value??'').trim().length<=LONG_VALUE_HINT;
+      }
+      function fieldsFor(template,old=[]){return keys(template).map(key=>{const prev=old.find(f=>f.key===key),field={key,label:key,value:prev?.value??(key==='제외 요소'?old.find(f=>f.key==='원치 않는 요소')?.value:undefined)??''};if(typeof prev?.required==='boolean')field.required=prev.required;return field;});}
       function resolve(template,fields){const values=new Map(fields.map(f=>[f.key,f.value]));return template.replace(/\{\{\s*([^{}]+?)\s*\}\}/g,(original,key)=>values.get(key.trim())||original);}
       const AUTO_FIELD_SKIP=new Set(['사용자 입력','제작 지시','마스터 프롬프트','master prompt','출력 방식','최종 출력','최종 목표','기본 역할','추가 기능','제목 해석 원칙','장면 구성 원칙','한글 표현 규칙','레이아웃 원칙','예시','예를 들어','참고','주의','아래','위의','입력된']);
       const autoAlias=value=>String(value??'').normalize('NFKC').replace(/\s+/g,' ').trim().toLocaleLowerCase('ko');
@@ -82,9 +92,9 @@
       function filter(items,{kind='image',category='전체',subcategory='전체',query='',saved=false,sort='latest'}={}){
         const words=query.normalize('NFKC').toLocaleLowerCase('ko').trim().split(/\s+/).filter(Boolean).map(w=>w.replace(/^#/,''));
         const matched=items.filter(item=>(saved||item.kind===kind)&&(!saved||item.favorite)&&(category==='전체'||item.category===category)&&(subcategory==='전체'||item.subcategories.includes(subcategory))&&words.every(w=>[item.title,item.category,item.tool,item.description,item.template,...item.tags,...item.subcategories,...item.fields.map(f=>f.value)].join(' ').normalize('NFKC').toLocaleLowerCase('ko').includes(w)));
-        if(sort==='popular')return matched.sort((a,b)=>b.copies-a.copies||b.createdAt-a.createdAt);
-        const newestImage=matched.reduce((latest,item)=>item.image&&(!latest||item.createdAt>latest.createdAt)?item:latest,null);
-        return matched.sort((a,b)=>Number(b.id===newestImage?.id)-Number(a.id===newestImage?.id)||b.createdAt-a.createdAt||b.updatedAt-a.updatedAt||a.title.localeCompare(b.title,'ko'));
+        const now=Date.now(),registeredAt=item=>Math.min(Number(item.createdAt)||0,now),updatedAt=item=>Math.min(Number(item.updatedAt)||registeredAt(item),now);
+        if(sort==='popular')return matched.sort((a,b)=>b.copies-a.copies||registeredAt(b)-registeredAt(a)||updatedAt(b)-updatedAt(a));
+        return matched.sort((a,b)=>registeredAt(b)-registeredAt(a)||updatedAt(b)-updatedAt(a)||a.title.localeCompare(b.title,'ko'));
       }
       function validImage(image){return typeof image==='string'&&(image===''||/^drive:[A-Za-z0-9_-]{10,120}$/.test(image)||/^assets\/[A-Za-z0-9._-]{1,120}\.(?:png|jpe?g|webp|gif)$/.test(image)||(image.length<=29*1024*1024&&/^data:image\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/]+={0,2}$/.test(image)));}
       function validateItem(item){
@@ -115,5 +125,5 @@
       }
       function merge(current,incoming){const result=current.map(i=>structuredClone(i));let added=0,skipped=0;for(const item of incoming){const old=result.find(i=>i.id===item.id);if(old&&JSON.stringify(old)===JSON.stringify(item)){skipped++;continue;}result.push({...structuredClone(item),id:old?uid():item.id});added++;}if(result.length>1000)throw Error('합친 자료가 1,000개를 넘습니다. 일부 자료를 정리해주세요.');return {items:result,added,skipped};}
       function safeJSON(data){return JSON.stringify(data).replace(/</g,'\\u003c').replace(/>/g,'\\u003e').replace(/&/g,'\\u0026');}
-      return {IMAGE_CATEGORIES,WRITER_CATEGORIES,CATEGORY_SUBCATEGORIES,normalizeCategory,normalizeSubcategory,uid,esc,keys,fieldsFor,resolve,autoFields,tags,subcategories,filter,validImage,validateItem,validateBackup,merge,safeJSON};
+      return {IMAGE_CATEGORIES,WRITER_CATEGORIES,CATEGORY_SUBCATEGORIES,normalizeCategory,normalizeSubcategory,uid,esc,keys,fieldsFor,fieldRequired,resolve,autoFields,tags,subcategories,filter,validImage,validateItem,validateBackup,merge,safeJSON};
     })();
