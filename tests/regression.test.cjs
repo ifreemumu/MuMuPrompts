@@ -14,6 +14,7 @@ function harness(){
     localStorage:storage,sessionStorage:storage,setTimeout:(fn,delay)=>{timers.push({fn,delay});return timers.length;},clearTimeout(){},requestAnimationFrame(){return 1;},cancelAnimationFrame(){},fetch:async()=>{throw Error('Network disabled in tests');}};
   vm.createContext(context);
   vm.runInContext(read('data/seeds.js'),context);
+  vm.runInContext(read('data/recent-seeds.js'),context);
   vm.runInContext(read('js/core.js'),context);
   const exposed=`window.testAPI={C,initial,writeStored,readStored,commit,snapshot,completeSnapshot,saveRecovery,loadPublished,checkPublished,contentKey,publishToDrive,rememberPublished,inlineResources, start,render,cardHTML,clearFilters,openDetail,closeDetail,get active(){return active;},
     setFilter(values){Object.assign(filter,values);},get filter(){return filter;},
@@ -23,11 +24,11 @@ function harness(){
   assert.ok(context.window.testAPI,'App test harness must load');
   return {api:context.window.testAPI,context,saved,timers,nodes};
 }
-test('all app scripts compile',()=>{for(const file of ['js/app.js','js/core.js','data/seeds.js'])new vm.Script(read(file));});
+test('all app scripts compile',()=>{for(const file of ['js/app.js','js/core.js','data/seeds.js','data/recent-seeds.js'])new vm.Script(read(file));});
 test('every bundled seed placeholder exists before the loader runs',()=>{
   const html=read('index.html');
   const loader=html.indexOf('id="seed-script"');
-  for(const id of Object.keys(JSON.parse(read('data/seeds.js').match(/const seeds=(\{[\s\S]*?\});\nfor\(/)[1]))){
+  for(const id of Object.keys(JSON.parse(read('data/seeds.js').match(/const seeds=(\{[\s\S]*?\});\r?\nfor\(/)[1]))){
     assert.ok(html.indexOf('id="'+id+'"')<loader,id+' must precede the seed loader');
   }
 });
@@ -38,6 +39,17 @@ test('starter images exist and fields have valid defaults',()=>{
   for(const item of items){if(item.image.startsWith('assets/'))assert.ok(fs.existsSync(path.join(root,item.image)),item.image);}
   const reader=items.find(i=>i.id==='mumu-curated-window-reader');
   assert.ok(reader.fields.find(f=>f.key==='제외 요소').value);
+});
+test('recent image prompts are bundled with their final images',()=>{
+  const {api}=harness();
+  const items=api.C.validateBackup(api.initial);
+  for(const id of ['mumu-curated-phonefree-100days-classroom','mumu-curated-phonefree-100days-outdoor','mumu-curated-phonefree-100days-tracker']){
+    const item=items.find(candidate=>candidate.id===id);
+    assert.ok(item,id+' must be bundled');
+    assert.equal(item.fields.length,13);
+    assert.ok(fs.existsSync(path.join(root,item.image)),item.image);
+  }
+  assert.equal(items.find(item=>item.id==='mumu-stamp-crayon-emotion9-woman').image,'assets/mumu-crayon-emotion9-woman-v2.png');
 });
 test('backup validation preserves old sample IDs and empty datasets',()=>{
   const {api}=harness();const item={...api.initial.items[0],id:'demo-cafe-poster'};

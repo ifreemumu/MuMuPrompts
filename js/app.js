@@ -370,12 +370,21 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
         $('#publish-id').textContent=GOOGLE.dataFileId||'아직 게시하지 않았습니다';
         $('#publish-embed').hidden=!GOOGLE.dataFileId||GOOGLE.dataFileId===BUILT_IN_DATA_FILE;
       }
+      function mergeCuratedSeeds(data){
+        const existing=C.validateBackup(data);
+        if(initial.offline||existing.length===0)return existing;
+        const existingIds=new Set(existing.map(item=>item.id));
+        const seeds=C.validateBackup(initial).filter(item=>item.id.startsWith('mumu-curated-')||item.id.startsWith('mumu-text-')||item.id.startsWith('mumu-poster-')||item.id.startsWith('mumu-stamp-')||item.id.startsWith('mumu-emotion24-'));
+        const seedById=new Map(seeds.map(seed=>[seed.id,seed]));
+        const refreshed=existing.map(item=>{const seed=seedById.get(item.id);return seed&&Number(seed.updatedAt)>Number(item.updatedAt)?{...seed,favorite:item.favorite,copies:item.copies}:item;});
+        return [...refreshed,...seeds.filter(seed=>!existingIds.has(seed.id))];
+      }
       async function loadPublished(){
         if(initial.offline||!GOOGLE.dataFileId)return null;
         try{
           const response=await fetch(DRIVE_API+'/files/'+encodeURIComponent(GOOGLE.dataFileId)+'?alt=media&key='+encodeURIComponent(GOOGLE.apiKey),{signal:AbortSignal.timeout(10000)});
           if(!response.ok)return null;
-          return C.validateBackup(await response.json());
+          return mergeCuratedSeeds(await response.json());
         }catch{return null;}
       }
       function contentKey(items){return JSON.stringify(items.map(({favorite,copies,...item})=>item).sort((a,b)=>a.id.localeCompare(b.id)));}
@@ -784,8 +793,8 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
         await initStorage();
         try{
           const stored=await readStored();
-          state.items=C.validateBackup(stored??initial);
-          if(!stored)await writeStored(state.items);
+          state.items=mergeCuratedSeeds(stored??initial);
+          if(!stored||contentKey(state.items)!==contentKey(C.validateBackup(stored)))await writeStored(state.items);
           render();renderPublishPanel();
           if(stored&&!initial.offline)checkPublished().catch(()=>{});
           if(!stored&&!initial.offline){
