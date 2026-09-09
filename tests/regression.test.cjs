@@ -14,8 +14,9 @@ function harness(){
     localStorage:storage,sessionStorage:storage,setTimeout:(fn,delay)=>{timers.push({fn,delay});return timers.length;},clearTimeout(){},requestAnimationFrame(){return 1;},cancelAnimationFrame(){},fetch:async()=>{throw Error('Network disabled in tests');}};
   vm.createContext(context);
   vm.runInContext(read('data/seeds.js'),context);
+  vm.runInContext(read('data/recent-seeds.js'),context);
   vm.runInContext(read('js/core.js'),context);
-  const exposed=`window.testAPI={C,initial,writeStored,readStored,commit,snapshot,completeSnapshot,saveRecovery,loadPublished,checkPublished,contentKey,publishToDrive,rememberPublished,inlineResources, start,render,cardHTML,clearFilters,openDetail,closeDetail,get active(){return active;},
+  const exposed=`window.testAPI={C,initial,writeStored,readStored,commit,snapshot,completeSnapshot,saveRecovery,loadPublished,checkPublished,contentKey,publishToDrive,rememberPublished,inlineResources, start,render,cardHTML,clearFilters,openDetail,closeDetail,registerDetailImage,prepareImage,get active(){return active;},
     setFilter(values){Object.assign(filter,values);},get filter(){return filter;},
     configure(options){if(options.items)state.items=options.items;if(options.mode)storageMode=options.mode;if(options.admin!==undefined)isAdmin=options.admin;if(options.offline!==undefined)initial.offline=options.offline;if(options.token)accessToken=options.token;},
     get items(){return state.items;},get conflict(){return remoteConflict;},get dbName(){return dbName;}};`;
@@ -23,11 +24,41 @@ function harness(){
   assert.ok(context.window.testAPI,'App test harness must load');
   return {api:context.window.testAPI,context,saved,timers,nodes};
 }
-test('all app scripts compile',()=>{for(const file of ['js/app.js','js/core.js','data/seeds.js'])new vm.Script(read(file));});
+test('all app scripts compile',()=>{for(const file of ['js/app.js','js/core.js','data/seeds.js','data/recent-seeds.js'])new vm.Script(read(file));});
+test('published deletions remain deleted and clean clients refresh',async()=>{
+  const {api,context}=harness();const items=api.C.validateBackup(api.initial).slice(0,3);api.configure({mode:'localStorage',items});api.rememberPublished(items);
+  context.fetch=async()=>({ok:true,json:async()=>({app:'mumu-prompts',version:3,items:items.slice(0,1)})});
+  const remote=await api.checkPublished();assert.equal(remote.length,1);assert.equal(api.items.length,1);
+});
+test('image upload stays with its original target when another detail is opened',async()=>{
+  const {api,context}=harness();const items=api.C.validateBackup(api.initial).slice(0,2).map(i=>({...i,image:''}));api.configure({admin:true,offline:true,mode:'localStorage',items});
+  let finish;context.FileReader=class{readAsDataURL(){finish=()=>{this.result='data:image/gif;base64,R0lGODlh';this.onload();};}};
+  context.Image=class{naturalWidth=10;naturalHeight=10;set src(v){this.onload();}};
+  await api.openDetail(items[0].id);const pending=api.registerDetailImage({type:'image/gif',size:10},{});
+  await api.openDetail(items[1].id);finish();await pending;
+  assert.ok(api.items[0].image);assert.equal(api.items[1].image,'');assert.equal(api.active.id,items[1].id);
+});
+test('image upload preserves unsaved prompt fields',async()=>{
+  const {api,context}=harness();const item={...api.C.validateBackup(api.initial)[0],image:''};api.configure({admin:true,offline:true,mode:'localStorage',items:[item]});
+  context.FileReader=class{readAsDataURL(){this.result='data:image/gif;base64,R0lGODlh';this.onload();}};
+  context.Image=class{naturalWidth=10;naturalHeight=10;set src(v){this.onload();}};
+  await api.openDetail(item.id);api.active.draft.fields[0].value='작성 중인 문구';api.active.dirty=true;
+  await api.registerDetailImage({type:'image/gif',size:10},{});
+  assert.equal(api.active.draft.fields[0].value,'작성 중인 문구');assert.equal(api.active.dirty,true);assert.ok(api.active.draft.image);
+});
+test('legacy registration date stays fixed after subsequent edits',()=>{
+  const {api}=harness();const item=api.C.validateItem({...api.initial.items[0],createdAt:9000,updatedAt:1000,imageAddedAt:0});
+  assert.equal(item.imageAddedAt,1000);assert.equal(api.C.validateItem({...item,updatedAt:10000}).imageAddedAt,1000);
+});
+test('publishing refuses to overwrite unseen remote changes',async()=>{
+  const {api,context}=harness();const items=api.C.validateBackup(api.initial).slice(0,1);api.configure({admin:true,token:'test',mode:'localStorage',items});api.rememberPublished(items);
+  let uploads=0;context.fetch=async url=>{if(url.includes('/upload/'))uploads++;return {ok:true,json:async()=>({app:'mumu-prompts',version:3,items:items.map(i=>({...i,title:'別の画面の編集'}))})};};
+  await assert.rejects(api.publishToDrive(),/변경/);assert.equal(uploads,0);
+});
 test('every bundled seed placeholder exists before the loader runs',()=>{
   const html=read('index.html');
   const loader=html.indexOf('id="seed-script"');
-  for(const id of Object.keys(JSON.parse(read('data/seeds.js').match(/const seeds=(\{[\s\S]*?\});\nfor\(/)[1]))){
+  for(const id of Object.keys(JSON.parse(read('data/seeds.js').match(/const seeds=(\{[\s\S]*?\});\r?\nfor\(/)[1]))){
     assert.ok(html.indexOf('id="'+id+'"')<loader,id+' must precede the seed loader');
   }
 });
@@ -38,6 +69,26 @@ test('starter images exist and fields have valid defaults',()=>{
   for(const item of items){if(item.image.startsWith('assets/'))assert.ok(fs.existsSync(path.join(root,item.image)),item.image);}
   const reader=items.find(i=>i.id==='mumu-curated-window-reader');
   assert.ok(reader.fields.find(f=>f.key==='제외 요소').value);
+});
+test('recent image prompts are bundled with their final images',()=>{
+  const {api}=harness();
+  const items=api.C.validateBackup(api.initial);
+  for(const id of ['mumu-curated-phonefree-100days-classroom','mumu-curated-phonefree-100days-outdoor','mumu-curated-phonefree-100days-tracker']){
+    const item=items.find(candidate=>candidate.id===id);
+    assert.ok(item,id+' must be bundled');
+    assert.equal(item.fields.length,13);
+    assert.ok(fs.existsSync(path.join(root,item.image)),item.image);
+  }
+  assert.equal(items.find(item=>item.id==='mumu-stamp-crayon-emotion9-woman').image,'assets/mumu-crayon-emotion9-woman-v2.png');
+});
+
+test('short prompt fields start compact and grow with their content',()=>{
+  const app=fs.readFileSync(path.join(root,'js','app.js'),'utf8');
+  const css=fs.readFileSync(path.join(root,'styles','app.css'),'utf8');
+  assert.match(app,/rows="1"/);
+  assert.match(app,/box\.style\.height='auto'/);
+  assert.match(app,/requestAnimationFrame\(\(\)=>\$\$\('#detail-fields textarea'\)\.forEach\(growField\)\)/);
+  assert.match(css,/\.field textarea\{min-height:48px;max-height:320px;/);
 });
 test('backup validation preserves old sample IDs and empty datasets',()=>{
   const {api}=harness();const item={...api.initial.items[0],id:'demo-cafe-poster'};
@@ -71,6 +122,31 @@ test('admin missing-image view and filtered empty state remain distinct',()=>{
   api.clearFilters();
   assert.equal(api.filter.query,'');assert.equal(api.filter.imageMode,'missing');
   assert.equal(nodes.get('empty').hidden,true);
+});
+test('latest sorting places the most recently registered image first',()=>{
+  const {api}=harness();const base=api.C.validateBackup(api.initial).find(item=>item.image),now=Date.now();
+  const older={...base,id:'older-image',title:'기존 이미지',createdAt:now-1000,updatedAt:now,imageAddedAt:now-1000};
+  const newer={...base,id:'newer-image',title:'최근 등록 이미지',createdAt:now-100000,updatedAt:now-500,imageAddedAt:now-500};
+  assert.deepEqual(api.C.filter([older,newer],{sort:'latest',imageMode:'registered'}).map(item=>item.id),['newer-image','older-image']);
+});
+test('future legacy creation dates cannot pin old images to the top',()=>{
+  const {api}=harness();const base=api.C.validateBackup(api.initial).find(item=>item.image),now=Date.now();
+  const malformed={...base,id:'future-created',title:'잘못된 미래 생성일',createdAt:now+86400000,updatedAt:now-86400000,imageAddedAt:0};
+  const recent={...base,id:'actually-recent',title:'실제 최근 이미지',createdAt:now-1000,updatedAt:now-1000,imageAddedAt:0};
+  assert.deepEqual(api.C.filter([malformed,recent],{sort:'latest',imageMode:'registered'}).map(item=>item.id),['actually-recent','future-created']);
+});
+test('admin can register a missing image directly from the detail preview',async()=>{
+  const {api,nodes}=harness();const item={...api.C.validateBackup(api.initial)[0],id:'direct-image-upload',image:''};
+  api.configure({admin:true,items:[item]});await api.openDetail(item.id);
+  const markup=nodes.get('detail-body').innerHTML;
+  assert.ok(markup.includes('id="detail-image-file"'));
+  assert.ok(markup.includes('여기서 바로 이미지 등록'));
+  assert.ok(markup.includes('파일을 선택하면 자동으로 저장하고 웹에 반영합니다.'));
+});
+test('public detail never exposes the direct image registration control',async()=>{
+  const {api,nodes}=harness();const item={...api.C.validateBackup(api.initial)[0],id:'private-direct-image-upload',image:''};
+  api.configure({admin:false,items:[item]});await api.openDetail(item.id);
+  assert.ok(!nodes.get('detail-body').innerHTML.includes('id="detail-image-file"'));
 });
 test('gallery cards close their interactive wrapper and prioritize the first image',()=>{
   const {api}=harness();const item=api.C.validateBackup(api.initial).find(i=>i.image);
@@ -158,9 +234,11 @@ test('copy statistics do not schedule publication',async()=>{
   await api.commit(items=>items.map(i=>({...i,copies:i.copies+1})),{content:false});assert.equal(timers.length,0);
   await api.commit(items=>items.map(i=>({...i,title:'Changed'})));assert.equal(timers.filter(t=>t.delay===1200).length,1);
 });
-test('backup refuses missing image content',async()=>{
+test('backup preserves an inaccessible image reference instead of losing the dataset',async()=>{
   const {api}=harness();api.configure({items:api.C.validateBackup(api.initial).slice(0,1)});
-  await assert.rejects(api.completeSnapshot(),/백업하지 못했습니다/);
+  const backup=await api.completeSnapshot();
+  assert.equal(api.C.validateBackup(backup).length,1);
+  assert.equal(backup.backupWarnings.length,1);
 });
 test('inline images survive portable backup',async()=>{
   const {api}=harness();const item={...api.initial.items[0],image:'data:image/png;base64,YQ=='};api.configure({items:[item]});
@@ -173,6 +251,16 @@ test('remote conflict is detected without mutating local content',async()=>{
 });
 test('offline mode does not fetch published data',async()=>{
   const {api,context}=harness();let requests=0;context.fetch=async()=>{requests++;throw Error();};api.configure({offline:true});assert.equal(await api.loadPublished(),null);assert.equal(requests,0);
+});
+test('drive backups keep image references compact instead of duplicating image bytes',()=>{
+  const app=read('js/app.js');
+  assert.match(app,/async function driveSaveBackup\(\)[\s\S]*?const backup=clone\(snapshot\(\)\)/);
+});
+test('signed-in admins can fetch published data when the public API-key request fails',async()=>{
+  const {api,context}=harness();const items=api.C.validateBackup(api.initial).slice(0,1);let requests=0,auth='';
+  api.configure({token:'test-only-token'});
+  context.fetch=async(_url,options={})=>{requests++;if(requests===1)return {ok:false,status:403};auth=options.headers.Authorization;return {ok:true,status:200,json:async()=>({app:'mumu-prompts',version:3,items})};};
+  const remote=await api.loadPublished();assert.ok(remote.some(item=>item.id===items[0].id));assert.equal(auth,'Bearer test-only-token');
 });
 test('recovery snapshot retains pre-replacement data',async()=>{
   const {api,saved}=harness();api.configure({mode:'localStorage',items:api.C.validateBackup(api.initial).slice(0,2)});await api.saveRecovery();await api.commit(()=>[],{content:false});assert.equal(JSON.parse(saved.get(api.dbName+'-recovery')).items.length,2);
@@ -187,22 +275,29 @@ test('startup never reseeds a deliberately empty dataset',async()=>{
   const {api}=harness();api.configure({mode:'localStorage',offline:true});await api.writeStored([]);await api.start();assert.equal(api.items.length,0);
 });
 test('publication requests execute sequentially',async()=>{
-  const {api,context}=harness();api.configure({mode:'localStorage',admin:true,token:'test-only-token',items:api.C.validateBackup(api.initial).slice(0,1)});
+  const {api,context,saved}=harness();api.configure({mode:'localStorage',admin:true,token:'test-only-token',items:api.C.validateBackup(api.initial).slice(0,1)});
+  const now=new Date();saved.set(api.dbName+'-daily-backup',[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-'));
   let active=0,max=0,uploads=0;
   context.fetch=async(url,options)=>{
     if(url.includes('/upload/')){uploads++;active++;max=Math.max(max,active);await new Promise(resolve=>setImmediate(resolve));active--;return {ok:true,status:200,json:async()=>({id:'test-file'})};}
-    return {ok:true,status:200,json:async()=>({files:[{id:'test-folder'}]})};
+    if(url.includes('alt=media'))return {ok:true,json:async()=>({app:'mumu-prompts',version:3,items:api.items})};return {ok:true,status:200,json:async()=>({files:[{id:'test-folder'}]})};
   };
   await Promise.all([api.publishToDrive(),api.publishToDrive()]);assert.equal(uploads,2);assert.equal(max,1);
 });
 test('publication preserves image references in the published payload',async()=>{
-  const {api,context}=harness();const item={...api.C.validateBackup(api.initial)[0],image:'drive:test-image-file'};
+  const {api,context,saved}=harness();const item={...api.C.validateBackup(api.initial)[0],image:'drive:test-image-file'};
   api.configure({mode:'localStorage',admin:true,token:'test-only-token',items:[item]});let payload='';
+  const now=new Date();saved.set(api.dbName+'-daily-backup',[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-'));
   context.fetch=async(url,options)=>{
     if(url.includes('/upload/')){payload=options.body;return {ok:true,status:200,json:async()=>({id:'test-file'})};}
-    return {ok:true,status:200,json:async()=>({files:[{id:'test-folder'}]})};
+    if(url.includes('alt=media'))return {ok:true,json:async()=>({app:'mumu-prompts',version:3,items:api.items})};return {ok:true,status:200,json:async()=>({files:[{id:'test-folder'}]})};
   };
   await api.publishToDrive();const published=JSON.parse(payload.match(/\r\n\r\n(\{\"app\":\"mumu-prompts\"[\s\S]*\})\r\n--mumu/)[1]);
   assert.equal(published.images[0].src,'drive:test-image-file');
   assert.equal(api.C.validateBackup(published)[0].image,'drive:test-image-file');
+});
+test('the first successful publication each day creates one compact backup',async()=>{
+  const {api,context}=harness();api.configure({mode:'localStorage',admin:true,token:'test-only-token',items:api.C.validateBackup(api.initial).slice(0,1)});let uploads=0;
+  context.fetch=async(url)=>{if(url.includes('/upload/')){uploads++;return {ok:true,status:200,json:async()=>({id:'test-file',name:'backup.json'})};}if(url.includes('alt=media'))return {ok:true,json:async()=>({app:'mumu-prompts',version:3,items:api.items})};return {ok:true,status:200,json:async()=>({files:[{id:'test-folder'}]})};};
+  await api.publishToDrive();await api.publishToDrive();assert.equal(uploads,3);
 });
