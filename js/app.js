@@ -230,16 +230,12 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
       }
       async function driveSaveBackup(){
         const folder=await driveEnsureFolder();
+        const name='MuMu-Prompts-daily-'+localDateKey()+'.json';
+        const query="'"+folder+"' in parents and name='"+name+"' and trashed=false";
+        const found=await(await driveCall(DRIVE_API+'/files?q='+encodeURIComponent(query)+'&fields=files(id)&pageSize=1')).json();
         await commitQueue.catch(()=>{});
         const backup=clone(snapshot());
-        const payload=C.safeJSON(backup);
-        const boundary='mumu'+Math.random().toString(36).slice(2);
-        const metadata={name:'MuMu-Prompts-'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')+'.json',parents:[folder],mimeType:'application/json'};
-        const body='--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(metadata)+
-          '\r\n--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+payload+'\r\n--'+boundary+'--';
-        const saved=await(await driveCall(DRIVE_UPLOAD+'/files?uploadType=multipart&fields=id,name',{method:'POST',
-          headers:{'Content-Type':'multipart/related; boundary='+boundary},body})).json();
-        return saved;
+        return driveUpload({name,mime:'application/json',body:C.safeJSON(backup),parents:[folder],fileId:found.files?.[0]?.id});
       }
       async function driveListBackups(){
         const folder=await driveEnsureFolder();
@@ -346,6 +342,10 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
       async function runPublish(){
         if(!isAdmin||initial.offline)return;
         if(remoteConflict)throw Error('게시 자료가 변경되었습니다. 게시 자료 확인에서 먼저 비교해주세요.');
+        const remote=await loadPublished();
+        if(!remote)throw Error('웹 자료를 확인하지 못해 게시를 보류했습니다. 다시 시도해주세요.');
+        const base=publishedBase();
+        if(contentKey(remote)!==base&&contentKey(remote)!==contentKey(state.items)){remoteConflict=true;throw Error('다른 화면에서 웹 자료가 변경되었습니다. 웹 자료를 먼저 가져와주세요.');}
         publishState('사이트에 반영하는 중입니다...','');
         try{
           await commitQueue.catch(()=>{});
@@ -385,12 +385,9 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
       function mergeCuratedSeeds(data){
         const existing=C.validateBackup(data);
         if(initial.offline||existing.length===0)return existing;
-        const existingIds=new Set(existing.map(item=>item.id));
-        const seeds=C.validateBackup(initial).filter(item=>item.id.startsWith('mumu-curated-')||item.id.startsWith('mumu-text-')||item.id.startsWith('mumu-poster-')||item.id.startsWith('mumu-stamp-')||item.id.startsWith('mumu-emotion24-'));
-        const seedById=new Map(seeds.map(seed=>[seed.id,seed]));
-        const refreshed=existing.map(item=>{const seed=seedById.get(item.id);return seed&&Number(seed.updatedAt)>Number(item.updatedAt)?{...seed,favorite:item.favorite,copies:item.copies}:item;});
-        return [...refreshed,...seeds.filter(seed=>!existingIds.has(seed.id))];
+        return existing;
       }
+
       async function loadPublished(){
         if(initial.offline||!GOOGLE.dataFileId)return null;
         try{
@@ -403,10 +400,15 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
       }
       function contentKey(items){return JSON.stringify(items.map(({favorite,copies,...item})=>item).sort((a,b)=>a.id.localeCompare(b.id)));}
       function rememberPublished(items){try{localStorage.setItem(dbName+'-published',contentKey(items));}catch{}}
+      function publishedBase(){try{const raw=localStorage.getItem(dbName+'-published');return raw?contentKey(JSON.parse(raw).map(item=>C.validateItem(item))):'';}catch{return '';}}
       async function checkPublished(){
         const remote=await loadPublished();if(!remote)return null;
-        const key=contentKey(remote);let base='';try{base=localStorage.getItem(dbName+'-published')||'';}catch{}
+        const key=contentKey(remote),base=publishedBase();
         if(key===contentKey(state.items)){rememberPublished(remote);remoteConflict=false;$('#sync-notice').hidden=true;publishState('웹과 일치 · '+state.items.length+'개','ok');}
+        else if(base===contentKey(state.items)&&!active&&!editorDirty){
+          await commit(items=>contentKey(items)===base?remote.map(i=>({...i,favorite:items.find(p=>p.id===i.id)?.favorite||false,copies:items.find(p=>p.id===i.id)?.copies||0})):items,{content:false});
+          if(contentKey(state.items)===key){rememberPublished(remote);remoteConflict=false;render();publishState('웹과 일치 · '+state.items.length+'개','ok');}
+        }
         else if(key!==base){remoteConflict=true;$('#sync-notice').hidden=false;publishState('게시 자료와 로컬 자료가 다릅니다. 백업 메뉴에서 확인해주세요.','bad');}
         return remote;
       }
@@ -744,12 +746,14 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
       async function readImage(file){const prepared=await prepareImage(file);if(!prepared)return;uploadImage=prepared.image;uploadRatio=prepared.ratio;editorDirty=true;refreshUpload();if(prepared.saved>.05)toast('이미지를 '+Math.round(file.size/1024)+'KB에서 '+Math.round(prepared.image.length*.75/1024)+'KB로 줄여서 넣었습니다.');}
       async function registerDetailImage(file,input){
         if(!file||!active||!requireAdmin())return;
+        const target=active,id=target.id;
         const box=$('#detail-image-upload');if(box){box.dataset.state='loading';box.setAttribute('aria-busy','true');box.querySelector('strong').textContent='이미지 저장 중…';}input.disabled=true;
         try{
           const prepared=await prepareImage(file);if(!prepared)return;
-          const image=await stashImage(prepared.image),id=active.id,now=Date.now();
-          await commit(items=>items.map(item=>item.id===id?{...item,image,ratio:prepared.ratio,imageAddedAt:now,updatedAt:now}:item));
-          active.dirty=false;await openDetail(id);toast('이미지를 등록했습니다. 공개 목록에도 자동 반영됩니다.');
+          const image=await stashImage(prepared.image),now=Date.now();
+          await commit(items=>{if(!items.some(item=>item.id===id))throw Error('등록 대상이 삭제되었습니다.');return items.map(item=>item.id===id?{...item,image,ratio:prepared.ratio,imageAddedAt:now,updatedAt:now}:item);});
+          if(active===target){Object.assign(target.draft,{image,ratio:prepared.ratio,imageAddedAt:now});box.outerHTML=mediaHTML(target.draft,true);}
+          toast('이미지를 저장했습니다. 웹 반영 상태는 목록 상단에서 확인하세요.');
         }catch(error){toast(error.message||'이미지를 등록하지 못했습니다. 다시 시도해주세요.');if(box){delete box.dataset.state;box.removeAttribute('aria-busy');box.querySelector('strong').textContent='여기서 바로 이미지 등록';}input.disabled=false;input.value='';}
       }
       function formError(error){$('#form-error').textContent=error.message||'저장하지 못했습니다. 다시 시도해주세요.';$('#form-error').hidden=false;}
@@ -844,6 +848,7 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
           toast('저장 자료를 열지 못했습니다. 기존 저장소는 유지됩니다. 백업으로 복구해주세요.');
         }
       }
+      window.addEventListener('focus',()=>{if(!active&&!editorDirty)checkPublished().catch(()=>{});});
       const startupQueue=commitQueue;
       start();
     })();

@@ -16,7 +16,7 @@ function harness(){
   vm.runInContext(read('data/seeds.js'),context);
   vm.runInContext(read('data/recent-seeds.js'),context);
   vm.runInContext(read('js/core.js'),context);
-  const exposed=`window.testAPI={C,initial,writeStored,readStored,commit,snapshot,completeSnapshot,saveRecovery,loadPublished,checkPublished,contentKey,publishToDrive,rememberPublished,inlineResources, start,render,cardHTML,clearFilters,openDetail,closeDetail,get active(){return active;},
+  const exposed=`window.testAPI={C,initial,writeStored,readStored,commit,snapshot,completeSnapshot,saveRecovery,loadPublished,checkPublished,contentKey,publishToDrive,rememberPublished,inlineResources, start,render,cardHTML,clearFilters,openDetail,closeDetail,registerDetailImage,prepareImage,get active(){return active;},
     setFilter(values){Object.assign(filter,values);},get filter(){return filter;},
     configure(options){if(options.items)state.items=options.items;if(options.mode)storageMode=options.mode;if(options.admin!==undefined)isAdmin=options.admin;if(options.offline!==undefined)initial.offline=options.offline;if(options.token)accessToken=options.token;},
     get items(){return state.items;},get conflict(){return remoteConflict;},get dbName(){return dbName;}};`;
@@ -25,6 +25,36 @@ function harness(){
   return {api:context.window.testAPI,context,saved,timers,nodes};
 }
 test('all app scripts compile',()=>{for(const file of ['js/app.js','js/core.js','data/seeds.js','data/recent-seeds.js'])new vm.Script(read(file));});
+test('published deletions remain deleted and clean clients refresh',async()=>{
+  const {api,context}=harness();const items=api.C.validateBackup(api.initial).slice(0,3);api.configure({mode:'localStorage',items});api.rememberPublished(items);
+  context.fetch=async()=>({ok:true,json:async()=>({app:'mumu-prompts',version:3,items:items.slice(0,1)})});
+  const remote=await api.checkPublished();assert.equal(remote.length,1);assert.equal(api.items.length,1);
+});
+test('image upload stays with its original target when another detail is opened',async()=>{
+  const {api,context}=harness();const items=api.C.validateBackup(api.initial).slice(0,2).map(i=>({...i,image:''}));api.configure({admin:true,offline:true,mode:'localStorage',items});
+  let finish;context.FileReader=class{readAsDataURL(){finish=()=>{this.result='data:image/gif;base64,R0lGODlh';this.onload();};}};
+  context.Image=class{naturalWidth=10;naturalHeight=10;set src(v){this.onload();}};
+  await api.openDetail(items[0].id);const pending=api.registerDetailImage({type:'image/gif',size:10},{});
+  await api.openDetail(items[1].id);finish();await pending;
+  assert.ok(api.items[0].image);assert.equal(api.items[1].image,'');assert.equal(api.active.id,items[1].id);
+});
+test('image upload preserves unsaved prompt fields',async()=>{
+  const {api,context}=harness();const item={...api.C.validateBackup(api.initial)[0],image:''};api.configure({admin:true,offline:true,mode:'localStorage',items:[item]});
+  context.FileReader=class{readAsDataURL(){this.result='data:image/gif;base64,R0lGODlh';this.onload();}};
+  context.Image=class{naturalWidth=10;naturalHeight=10;set src(v){this.onload();}};
+  await api.openDetail(item.id);api.active.draft.fields[0].value='작성 중인 문구';api.active.dirty=true;
+  await api.registerDetailImage({type:'image/gif',size:10},{});
+  assert.equal(api.active.draft.fields[0].value,'작성 중인 문구');assert.equal(api.active.dirty,true);assert.ok(api.active.draft.image);
+});
+test('legacy registration date stays fixed after subsequent edits',()=>{
+  const {api}=harness();const item=api.C.validateItem({...api.initial.items[0],createdAt:9000,updatedAt:1000,imageAddedAt:0});
+  assert.equal(item.imageAddedAt,1000);assert.equal(api.C.validateItem({...item,updatedAt:10000}).imageAddedAt,1000);
+});
+test('publishing refuses to overwrite unseen remote changes',async()=>{
+  const {api,context}=harness();const items=api.C.validateBackup(api.initial).slice(0,1);api.configure({admin:true,token:'test',mode:'localStorage',items});api.rememberPublished(items);
+  let uploads=0;context.fetch=async url=>{if(url.includes('/upload/'))uploads++;return {ok:true,json:async()=>({app:'mumu-prompts',version:3,items:items.map(i=>({...i,title:'別の画面の編集'}))})};};
+  await assert.rejects(api.publishToDrive(),/변경/);assert.equal(uploads,0);
+});
 test('every bundled seed placeholder exists before the loader runs',()=>{
   const html=read('index.html');
   const loader=html.indexOf('id="seed-script"');
@@ -230,7 +260,7 @@ test('publication requests execute sequentially',async()=>{
   let active=0,max=0,uploads=0;
   context.fetch=async(url,options)=>{
     if(url.includes('/upload/')){uploads++;active++;max=Math.max(max,active);await new Promise(resolve=>setImmediate(resolve));active--;return {ok:true,status:200,json:async()=>({id:'test-file'})};}
-    return {ok:true,status:200,json:async()=>({files:[{id:'test-folder'}]})};
+    if(url.includes('alt=media'))return {ok:true,json:async()=>({app:'mumu-prompts',version:3,items:api.items})};return {ok:true,status:200,json:async()=>({files:[{id:'test-folder'}]})};
   };
   await Promise.all([api.publishToDrive(),api.publishToDrive()]);assert.equal(uploads,2);assert.equal(max,1);
 });
@@ -240,7 +270,7 @@ test('publication preserves image references in the published payload',async()=>
   const now=new Date();saved.set(api.dbName+'-daily-backup',[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-'));
   context.fetch=async(url,options)=>{
     if(url.includes('/upload/')){payload=options.body;return {ok:true,status:200,json:async()=>({id:'test-file'})};}
-    return {ok:true,status:200,json:async()=>({files:[{id:'test-folder'}]})};
+    if(url.includes('alt=media'))return {ok:true,json:async()=>({app:'mumu-prompts',version:3,items:api.items})};return {ok:true,status:200,json:async()=>({files:[{id:'test-folder'}]})};
   };
   await api.publishToDrive();const published=JSON.parse(payload.match(/\r\n\r\n(\{\"app\":\"mumu-prompts\"[\s\S]*\})\r\n--mumu/)[1]);
   assert.equal(published.images[0].src,'drive:test-image-file');
@@ -248,6 +278,6 @@ test('publication preserves image references in the published payload',async()=>
 });
 test('the first successful publication each day creates one compact backup',async()=>{
   const {api,context}=harness();api.configure({mode:'localStorage',admin:true,token:'test-only-token',items:api.C.validateBackup(api.initial).slice(0,1)});let uploads=0;
-  context.fetch=async(url)=>{if(url.includes('/upload/')){uploads++;return {ok:true,status:200,json:async()=>({id:'test-file',name:'backup.json'})};}return {ok:true,status:200,json:async()=>({files:[{id:'test-folder'}]})};};
+  context.fetch=async(url)=>{if(url.includes('/upload/')){uploads++;return {ok:true,status:200,json:async()=>({id:'test-file',name:'backup.json'})};}if(url.includes('alt=media'))return {ok:true,json:async()=>({app:'mumu-prompts',version:3,items:api.items})};return {ok:true,status:200,json:async()=>({files:[{id:'test-folder'}]})};};
   await api.publishToDrive();await api.publishToDrive();assert.equal(uploads,3);
 });
