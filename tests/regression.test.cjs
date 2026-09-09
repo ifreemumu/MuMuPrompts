@@ -86,6 +86,26 @@ test('image ratio metadata reserves space without overriding the loaded image ra
   }
   assert.ok(!api.cardHTML({...item,ratio:0}).includes('aspect-ratio:'));
 });
+test('pasted prompt metadata is classified with editable defaults',()=>{
+  const {api}=harness();
+  const result=api.C.analyzePrompt(`
+신메뉴 출시 홍보 포스터를 제작한다.
+핵심 주제: 노란 망고 요거트 스무디와 밝은 카페 테이블
+스타일: 따뜻한 실사 사진, 크림색과 망고 옐로
+구도: 세로형 포스터, 위쪽에 제목 여백
+Midjourney용 프롬프트
+#신메뉴 #카페
+`);
+  assert.equal(result.title,'신메뉴 출시 홍보 포스터');
+  assert.match(result.description,/핵심 주제:/);
+  assert.match(result.description,/스타일:/);
+  assert.equal(result.tool,'Midjourney');
+  assert.equal(result.category,'📢 홍보물·포스터');
+  assert.ok(result.subcategories.includes('행사·이벤트'));
+  assert.ok(result.tags.includes('신메뉴')||result.tags.includes('카페'));
+  const defaultResult=api.C.analyzePrompt('따뜻한 수채화 풍경 일러스트를 만들어주세요.');
+  assert.equal(defaultResult.tool,'ChatGPT');
+});
 test('detail is a page and returning restores gallery scroll and focus',async()=>{
   assert.match(read('index.html'),/<section id="detail"[^>]*role="main"[^>]*hidden>/);
   assert.doesNotMatch(read('index.html'),/<dialog id="detail"/);

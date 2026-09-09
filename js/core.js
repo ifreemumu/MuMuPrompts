@@ -87,6 +87,78 @@
         });
         return {template:finalLines.join('\n'),fields:[...found.values()],convertedCount:Math.max(0,found.size-existing.length),existingCount:existing.length,skipped};
       }
+      const PROMPT_CATEGORY_RULES=[
+        {category:'📢 홍보물·포스터',subcategories:['매장·업종 홍보','행사·이벤트','카드뉴스·안내문','배너·광고'],terms:['포스터','홍보','광고','프로모션','전단','메뉴판','안내문','캠페인','오픈 이벤트','신메뉴','할인','배너']},
+        {category:'💻 UI·웹 화면',subcategories:['웹사이트','앱 UI','랜딩페이지','아이콘·로고'],terms:['웹사이트','웹 페이지','앱 ui','앱 화면','랜딩페이지','대시보드','버튼','와이어프레임','아이콘','로고','ui 디자인']},
+        {category:'🧸 스티커·이모티콘',subcategories:['카카오 이모티콘','스티커·라벨','굿즈·인쇄물'],terms:['이모티콘','카카오톡','스티커','스탬프','굿즈','라벨']},
+        {category:'📊 정보·인포그래픽',subcategories:['통계·차트','다이어그램·도해','타임라인·연표','비교·순위표'],terms:['인포그래픽','차트','그래프','통계','다이어그램','도해','타임라인','연표','비교표','순위표','데이터 시각화']},
+        {category:'📱 SNS 콘텐츠',subcategories:['인스타그램','유튜브 썸네일','쓰레드·X','프로필·커버'],terms:['인스타그램','인스타','유튜브','썸네일','쓰레드','threads','x 포스트','프로필 이미지','커버 이미지']},
+        {category:'📦 제품·상품컷',subcategories:['제품 단독컷','음식·메뉴','패키지·목업','상품 진열'],terms:['제품','상품','패키지','목업','제품컷','상품컷','음식','메뉴','음료','커피','디저트','화장품']},
+        {category:'📸 인물·사진',subcategories:['프로필·증명사진','패션·화보','일상 스냅','단체·가족'],terms:['인물','사람','프로필','증명사진','패션','화보','모델','portrait','인물 사진','가족사진']},
+        {category:'🏞️ 풍경·배경',subcategories:['자연·계절','도시·여행','건축·공간','배경화면'],terms:['풍경','자연','계절','여행','도시','건축','인테리어','공간','배경화면','바다','산','하늘']},
+        {category:'🎨 일러스트·캐릭터',subcategories:['캐릭터','동화·그림책','수채화·드로잉','장면·컨셉아트'],terms:['일러스트','캐릭터','애니메이션','만화','동화','그림책','수채화','드로잉','스케치','크레용','컨셉아트']}
+      ];
+      const PROMPT_TAG_RULES=[
+        ['포스터',['포스터','홍보물','광고']],['광고',['광고','프로모션','캠페인']],['배너',['배너']],['카드뉴스',['카드뉴스']],['제품',['제품','상품','제품컷','상품컷']],['패키지',['패키지','목업']],['음식',['음식','메뉴','음료','커피','디저트']],['카페',['카페','베이커리']],['인물',['인물','사람','모델','프로필','portrait']],['풍경',['풍경','자연','여행','도시','바다','산']],['건축',['건축','인테리어','공간']],['캐릭터',['캐릭터','애니메이션','만화']],['일러스트',['일러스트','동화','그림책']],['수채화',['수채화']],['드로잉',['드로잉','스케치']],['스티커',['스티커','라벨']],['이모티콘',['이모티콘','카카오톡']],['인포그래픽',['인포그래픽','데이터 시각화']],['차트',['차트','그래프','통계']],['웹사이트',['웹사이트','웹 페이지']],['앱 UI',['앱 ui','앱 화면']],['인스타그램',['인스타그램','인스타']],['유튜브',['유튜브','썸네일']],['3D',['3d','3d 애니메이션']],['사진',['사진','실사','photorealistic']],['미니멀',['미니멀','minimal']],['빈티지',['빈티지','레트로','vintage']],['파스텔',['파스텔','pastel']],['네온',['네온','neon']]
+      ];
+      const PROMPT_MODEL_RULES=[
+        ['Midjourney',/(?:midjourney|미드저니|mid\s*journey)/i],
+        ['Stable Diffusion',/(?:stable\s*diffusion|스테이블\s*디퓨전|sdxl|sd\s*1\.5|comfyui)/i],
+        ['DALL·E',/(?:dall[\s-]*e|달리\s*(?:3|e|모델|이미지))/i],
+        ['Gemini',/(?:gemini|제미나이)/i],
+        ['Leonardo AI',/(?:leonardo\s*ai|레오나르도\s*ai)/i],
+        ['ChatGPT',/(?:chat\s*gpt|chatgpt|챗\s*gpt|챗gpt|gpt\s*4(?:o|\.1)?|openai)/i]
+      ];
+      const PROMPT_SUBCATEGORY_RULES={
+        '📢 홍보물·포스터':{'행사·이벤트':['행사','이벤트','출시','오픈','캠페인'],'매장·업종 홍보':['매장','카페','베이커리','신메뉴','메뉴'],'카드뉴스·안내문':['카드뉴스','안내문','안내'],'배너·광고':['배너','광고']},
+        '📦 제품·상품컷':{'음식·메뉴':['음식','메뉴','음료','커피','디저트'],'패키지·목업':['패키지','목업'],'제품 단독컷':['제품','상품'],'상품 진열':['진열','매대']},
+        '📱 SNS 콘텐츠':{'인스타그램':['인스타그램','인스타'],'유튜브 썸네일':['유튜브','썸네일'],'쓰레드·X':['쓰레드','threads','x 포스트'],'프로필·커버':['프로필','커버']},
+        '🎨 일러스트·캐릭터':{'캐릭터':['캐릭터','인물 캐릭터'],'동화·그림책':['동화','그림책'],'수채화·드로잉':['수채화','드로잉','스케치'],'장면·컨셉아트':['컨셉아트','장면']}
+      };
+      const PROMPT_LABELS=['주요 요소','핵심 요소','핵심 주제','주제','목적','장면','배경','배경·환경','스타일','구도','레이아웃','색감','분위기','이미지 텍스트','텍스트','출력 조건'];
+      const PROMPT_STOPWORDS=new Set('이미지 프롬프트 만들어 제작 생성 해주세요 해줘 한다 표현 사용 적용 포함 구성 완전히 새롭게 고품질 고해상도 한 장으로 아래 다음 다음과 같이 그리고 또는 위한 대한'.split(' '));
+      const promptClean=value=>String(value??'').replace(/\r\n?/g,'\n').replace(/```[\s\S]*?```/g,match=>match.replace(/```/g,'')).trim();
+      const promptNorm=value=>promptClean(value).normalize('NFKC').replace(/\s+/g,' ').toLocaleLowerCase('ko');
+      const promptHas=(text,term)=>promptNorm(text).includes(promptNorm(term));
+      function promptValue(lines,label){
+        const escaped=label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+        const pattern=new RegExp('^\\s*(?:[-*•]|[①-⑳]|\\d+[.)])?\\s*(?:\\[?'+escaped+'\\]?)\\s*[:：-]\\s*(.+?)\\s*$','i');
+        for(const line of lines){const match=line.match(pattern);if(match&&!/^\{\{[^}]+\}\}$/.test(match[1].trim()))return match[1].trim();}
+        return '';
+      }
+      function promptCandidateLines(source){
+        return promptClean(source).split('\n').map(line=>line.replace(/^\s*(?:[-*•]|[①-⑳]|\d+[.)])\s*/,'').replace(/^#{1,6}\s*/,'').replace(/^\s*\[[^\]]+\]\s*$/,'').trim()).filter(line=>line&&line.length>1&&!/^https?:\/\//i.test(line));
+      }
+      function promptTitle(source,lines){
+        for(const label of ['제목','메인 제목']){const value=promptValue(lines,label);if(value)return value.replace(/[.!?。！？]+$/,'').slice(0,80);}
+        const candidate=lines.find(line=>!/^\{\{[^}]+\}\}$/.test(line)&&!/^\s*(?:출력|원치 않는|제외|규칙|참고|주의|프롬프트|사용자 입력|제작 지시)/i.test(line)&&!/(?:만들어|제작해|생성해|표현해|적용해|해주세요|해줘)\s*[.!?。！？]*$/i.test(line));
+        if(candidate)return candidate.replace(/(?:을|를)?\s*(?:제작|만들|생성)한다\s*[.!?。！？]*$/i,'').replace(/\s+/g,' ').slice(0,80);
+        for(const label of ['주제','핵심 주제','목적','제품명','책 제목']){const value=promptValue(lines,label);if(value)return value.replace(/[.!?。！？]+$/,'').slice(0,80);}
+        return '새 이미지 프롬프트';
+      }
+      function promptDescription(lines,title){
+        const parts=[];
+        for(const label of PROMPT_LABELS){const value=promptValue(lines,label);if(value&&!parts.some(part=>part===value))parts.push(label+': '+value);if(parts.length>=4)break;}
+        if(!parts.length){
+          for(const line of lines){if(line===title||/^\{\{[^}]+\}\}$/.test(line)||PROMPT_STOPWORDS.has(line))continue;if(/(?:해야|넣지|금지|정확히|지정하지|워터마크|오탈자)/.test(line))continue;parts.push(line);if(parts.length>=3)break;}
+        }
+        return parts.join(' · ').slice(0,3000);
+      }
+      function promptCategory(source){
+        const scores=PROMPT_CATEGORY_RULES.map((rule,index)=>({rule,index,score:rule.terms.reduce((score,term)=>score+(promptHas(source,term)?1:0),0)})).sort((a,b)=>b.score-a.score||a.index-b.index);
+        const winner=scores[0];
+        const subcategory=winner&&winner.score?Object.entries(PROMPT_SUBCATEGORY_RULES[winner.rule.category]||{}).find(([value,terms])=>winner.rule.subcategories.includes(value)&&terms.some(term=>promptHas(source,term)))?.[0]||winner.rule.subcategories.find(value=>promptHas(source,value.replace(/[·]/g,' ')))||winner.rule.subcategories.find(value=>value&&promptHas(source,value.split('·')[0]))||'':'';
+        return winner&&winner.score?{category:winner.rule.category,subcategory}:{category:'🎨 일러스트·캐릭터',subcategory:''};
+      }
+      function promptTags(source,category,subcategory){
+        const tags=[];const explicit=[...promptClean(source).matchAll(/(^|\s)#([\p{L}\p{N}_-]{1,40})/gu)].map(match=>match[2]);
+        [...explicit,...PROMPT_TAG_RULES.filter(([,terms])=>terms.some(term=>promptHas(source,term))).map(([tag])=>tag),subcategory,category?.split(' ').slice(1).join(' ')].forEach(tag=>{const value=String(tag??'').replace(/^#/,'').trim();if(value&&!tags.some(existing=>existing.toLocaleLowerCase('ko')===value.toLocaleLowerCase('ko')))tags.push(value);});
+        return tags.slice(0,20);
+      }
+      function analyzePrompt(source){
+        const text=promptClean(source),lines=promptCandidateLines(text),title=promptTitle(text,lines),description=promptDescription(lines,title),classification=promptCategory(text),tool=PROMPT_MODEL_RULES.find(([,pattern])=>pattern.test(text))?.[0]||'ChatGPT';
+        return {title,description,tags:promptTags(text,classification.category,classification.subcategory),tool,category:classification.category,subcategories:classification.subcategory?[classification.subcategory]:[],hasContent:Boolean(text)};
+      }
       function tags(input){return [...new Set(String(input).split(/[\s,#]+/).filter(Boolean))].slice(0,20);}
       function subcategories(input){return [...new Set(String(input).split(/[,;|]+/).map(v=>v.trim()).filter(Boolean))].slice(0,20);}
       function filter(items,{kind='image',category='전체',subcategory='전체',query='',saved=false,sort='latest',imageMode='all'}={}){
@@ -125,5 +197,5 @@
       }
       function merge(current,incoming){const result=current.map(i=>structuredClone(i));let added=0,skipped=0;for(const item of incoming){const old=result.find(i=>i.id===item.id);if(old&&JSON.stringify(old)===JSON.stringify(item)){skipped++;continue;}result.push({...structuredClone(item),id:old?uid():item.id});added++;}if(result.length>1000)throw Error('합친 자료가 1,000개를 넘습니다. 일부 자료를 정리해주세요.');return {items:result,added,skipped};}
       function safeJSON(data){return JSON.stringify(data).replace(/</g,'\\u003c').replace(/>/g,'\\u003e').replace(/&/g,'\\u0026');}
-      return {IMAGE_CATEGORIES,WRITER_CATEGORIES,CATEGORY_SUBCATEGORIES,normalizeCategory,normalizeSubcategory,uid,esc,keys,fieldsFor,fieldRequired,resolve,autoFields,tags,subcategories,filter,validImage,validateItem,validateBackup,merge,safeJSON};
+      return {IMAGE_CATEGORIES,WRITER_CATEGORIES,CATEGORY_SUBCATEGORIES,normalizeCategory,normalizeSubcategory,uid,esc,keys,fieldsFor,fieldRequired,resolve,autoFields,analyzePrompt,tags,subcategories,filter,validImage,validateItem,validateBackup,merge,safeJSON};
     })();
