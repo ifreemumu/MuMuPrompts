@@ -92,7 +92,7 @@
       function filter(items,{kind='image',category='전체',subcategory='전체',query='',saved=false,sort='latest',imageMode='all'}={}){
         const words=query.normalize('NFKC').toLocaleLowerCase('ko').trim().split(/\s+/).filter(Boolean).map(w=>w.replace(/^#/,''));
         const matched=items.filter(item=>(saved||item.kind===kind)&&(!saved||item.favorite)&&(imageMode==='all'||(imageMode==='registered'?Boolean(item.image):!item.image))&&(category==='전체'||item.category===category)&&(subcategory==='전체'||item.subcategories.includes(subcategory))&&words.every(w=>[item.title,item.category,item.tool,item.description,item.template,...item.tags,...item.subcategories,...item.fields.map(f=>f.value)].join(' ').normalize('NFKC').toLocaleLowerCase('ko').includes(w)));
-        const now=Date.now(),registeredAt=item=>Math.min(Number(item.createdAt)||0,now),updatedAt=item=>Math.min(Number(item.updatedAt)||registeredAt(item),now);
+        const now=Date.now(),registeredAt=item=>Math.min(Number(item.imageAddedAt)||Number(item.createdAt)||0,now),updatedAt=item=>Math.min(Number(item.updatedAt)||registeredAt(item),now);
         if(sort==='popular')return matched.sort((a,b)=>b.copies-a.copies||registeredAt(b)-registeredAt(a)||updatedAt(b)-updatedAt(a));
         return matched.sort((a,b)=>registeredAt(b)-registeredAt(a)||updatedAt(b)-updatedAt(a)||a.title.localeCompare(b.title,'ko'));
       }
@@ -115,7 +115,7 @@
         if(!Array.isArray(item.tags)||item.tags.length>20||item.tags.some(t=>typeof t!=='string'||t.length>100))throw Error('해시태그 형식이 올바르지 않습니다.');
         if(!Array.isArray(item.fields)||item.fields.length>40||item.fields.some(f=>!f||typeof f.key!=='string'||f.key.length>100||typeof f.value!=='string'||f.value.length>10000))throw Error('프롬프트 입력칸 형식이 올바르지 않습니다.');
         if(keys(template).length>40||keys(template).some(k=>k.length>100))throw Error('입력칸은 최대 40개, 항목 이름은 최대 100자까지 가능합니다.');
-        return {id,title,kind,category,template,description,tool,image,imageRef,ratio,subcategories,tags:item.tags.slice(),fields:fieldsFor(template,item.fields),favorite:item.favorite===true,copies:Number.isSafeInteger(item.copies)&&item.copies>=0?item.copies:0,createdAt:Number.isFinite(item.createdAt)&&item.createdAt>=0?item.createdAt:Date.now(),updatedAt:Number.isFinite(item.updatedAt)&&item.updatedAt>=0?item.updatedAt:Date.now(),sample:item.sample===true};
+        return {id,title,kind,category,template,description,tool,image,imageRef,ratio,subcategories,tags:item.tags.slice(),fields:fieldsFor(template,item.fields),favorite:item.favorite===true,copies:Number.isSafeInteger(item.copies)&&item.copies>=0?item.copies:0,createdAt:Number.isFinite(item.createdAt)&&item.createdAt>=0?item.createdAt:Date.now(),updatedAt:Number.isFinite(item.updatedAt)&&item.updatedAt>=0?item.updatedAt:Date.now(),imageAddedAt:Number.isFinite(item.imageAddedAt)&&item.imageAddedAt>=0?item.imageAddedAt:0,sample:item.sample===true};
       }
       function validateBackup(data){
         if(!data||!['aikit-local','mumu-prompts'].includes(data.app)||![1,2,3].includes(data.version)||!Array.isArray(data.items)||data.items.length>1000)throw Error('이 앱에서 저장한 JSON 백업을 선택해주세요. 최대 1,000개까지 불러올 수 있습니다.');
