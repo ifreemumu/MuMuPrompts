@@ -93,6 +93,19 @@ test('admin missing-image view and filtered empty state remain distinct',()=>{
   assert.equal(api.filter.query,'');assert.equal(api.filter.imageMode,'missing');
   assert.equal(nodes.get('empty').hidden,true);
 });
+test('admin can register a missing image directly from the detail preview',async()=>{
+  const {api,nodes}=harness();const item={...api.C.validateBackup(api.initial)[0],id:'direct-image-upload',image:''};
+  api.configure({admin:true,items:[item]});await api.openDetail(item.id);
+  const markup=nodes.get('detail-body').innerHTML;
+  assert.ok(markup.includes('id="detail-image-file"'));
+  assert.ok(markup.includes('여기서 바로 이미지 등록'));
+  assert.ok(markup.includes('파일을 선택하면 자동으로 저장하고 웹에 반영합니다.'));
+});
+test('public detail never exposes the direct image registration control',async()=>{
+  const {api,nodes}=harness();const item={...api.C.validateBackup(api.initial)[0],id:'private-direct-image-upload',image:''};
+  api.configure({admin:false,items:[item]});await api.openDetail(item.id);
+  assert.ok(!nodes.get('detail-body').innerHTML.includes('id="detail-image-file"'));
+});
 test('gallery cards close their interactive wrapper and prioritize the first image',()=>{
   const {api}=harness();const item=api.C.validateBackup(api.initial).find(i=>i.image);
   assert.match(api.cardHTML(item,0),/loading="eager" fetchpriority="high"/);
