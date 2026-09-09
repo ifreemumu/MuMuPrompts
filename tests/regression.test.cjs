@@ -99,6 +99,12 @@ test('latest sorting places the most recently registered image first',()=>{
   const newer={...base,id:'newer-image',title:'최근 등록 이미지',createdAt:now-100000,updatedAt:now-500,imageAddedAt:now-500};
   assert.deepEqual(api.C.filter([older,newer],{sort:'latest',imageMode:'registered'}).map(item=>item.id),['newer-image','older-image']);
 });
+test('future legacy creation dates cannot pin old images to the top',()=>{
+  const {api}=harness();const base=api.C.validateBackup(api.initial).find(item=>item.image),now=Date.now();
+  const malformed={...base,id:'future-created',title:'잘못된 미래 생성일',createdAt:now+86400000,updatedAt:now-86400000,imageAddedAt:0};
+  const recent={...base,id:'actually-recent',title:'실제 최근 이미지',createdAt:now-1000,updatedAt:now-1000,imageAddedAt:0};
+  assert.deepEqual(api.C.filter([malformed,recent],{sort:'latest',imageMode:'registered'}).map(item=>item.id),['actually-recent','future-created']);
+});
 test('admin can register a missing image directly from the detail preview',async()=>{
   const {api,nodes}=harness();const item={...api.C.validateBackup(api.initial)[0],id:'direct-image-upload',image:''};
   api.configure({admin:true,items:[item]});await api.openDetail(item.id);
