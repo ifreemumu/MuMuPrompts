@@ -51,7 +51,7 @@
       const icon=name=>'<svg viewBox="0 0 24 24" aria-hidden="true">'+(iconPaths[name]||iconPaths.file)+'</svg>';
       function icons(root=document){root.querySelectorAll('[data-icon]').forEach(el=>el.innerHTML=icon(el.dataset.icon));}
       icons();$('#search-icon').innerHTML=icon('search');$('#clear-search').innerHTML=icon('x');
-            let state={items:[]},filter={kind:'image',category:'전체',query:'',subcategory:'전체',saved:false,sort:'latest',imageMode:'registered'},db=null,storageMode='memory',active=null,editorItem=null,uploadImage='',editorDirty=false,toastTimer,commitQueue=Promise.resolve(),confirmResolve=null,autoMeta={};
+            let state={items:[]},filter={kind:'image',category:'전체',query:'',subcategory:'전체',saved:false,sort:'latest',imageMode:'registered'},db=null,storageMode='memory',active=null,editorItem=null,uploadImage='',editorDirty=false,toastTimer,commitQueue=Promise.resolve(),confirmResolve=null;
       const clone=x=>structuredClone(x);
       function toast(message){const host=$$('dialog[open]').at(-1)||document.body;host.append($('#toast'));$('#toast').textContent=message;$('#toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').hidden=true,4000);}
       function storageError(error){console.error('Local storage error:',error?.name||'Error');toast('저장하지 못했습니다. 입력 내용은 유지됩니다. 백업으로 자료를 보관해주세요.');}
@@ -535,7 +535,27 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
       async function copyPrompt(){if(!active)return;const text=$('#final-prompt').value;let copied=false;try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(text);copied=true;}}catch{}if(!copied){$('#final-prompt').focus();$('#final-prompt').select();copied=document.execCommand('copy');}if(!copied){toast('프롬프트를 선택했습니다. Ctrl+C로 복사해주세요.');return;}showCopyFeedback();const id=active.id;try{await commit(items=>items.map(i=>i.id===id?{...i,copies:i.copies+1}:i),{content:false});}catch{toast('복사했습니다. 복사 횟수는 저장하지 못했습니다.');}}
       function fillCategories(kind,value){const cats=C.IMAGE_CATEGORIES;$('#form-category').innerHTML=[...new Set([...cats,...(value?[value]:[])])].map(c=>'<option value="'+e(c)+'">'+e(c)+'</option>').join('');if(value)$('#form-category').value=value;$('#prompt-builder').hidden=false;fillSubOptions();}
       function fillSubOptions(){const list=$('#subcategory-options');if(!list)return;const picked=$('#form-category').value;list.innerHTML=(C.CATEGORY_SUBCATEGORIES[picked]||[]).map(s=>'<option value="'+e(s)+'">').join('');}
-      function openEditor(item=null){editorItem=item?clone(item):null;editorDirty=false;autoMeta={title:false,description:false,tags:false,tool:false,category:false,subcategories:false};uploadImage=item?.image||'';uploadRatio=item?.ratio||0;const form=$('#item-form');form.reset();resetBuilder();form.elements.kind.value=item?.kind||filter.kind;fillCategories(form.elements.kind.value,item?.category);for(const key of ['title','template','description'])form.elements[key].value=item?.[key]||'';form.elements.tool.value=item?item.tool||'도구 자유 선택':'ChatGPT';if(!item){autoMeta.tool=true;autoMeta.category=true;}form.elements.subcategories.value=item?.subcategories.join(', ')||'';form.elements.tags.value=item?.tags.map(t=>'#'+t).join(' ')||'';autoFieldStatus(item?'프롬프트를 붙여넣으면 자동 분석합니다.':'붙여넣으면 제목·주요 요소·해시태그·AI 모델도 자동으로 채웁니다.');updateEditorPreview();$('#editor-title').textContent=item?'프롬프트 수정':'프롬프트 추가';$('#form-submit').innerHTML=icon(item?'check':'plus')+(item?'수정 내용 저장':'보관함에 추가');$('#form-error').hidden=true;refreshUpload();detectedFields();$('#editor').showModal();}
+      function promptItemFromJSON(data){
+        const candidates=data?.app==='mumu-prompts'||data?.app==='aikit-local'?data.items:Array.isArray(data)?data:[data];
+        if(!Array.isArray(candidates)||candidates.length!==1)throw Error('프롬프트 추가에는 프롬프트 1개가 들어 있는 JSON 파일만 불러올 수 있습니다. 전체 백업은 백업 메뉴를 이용하세요.');
+        const source={...candidates[0]};
+        if(!source||typeof source!=='object')throw Error('프롬프트 자료 형식을 확인해주세요.');
+        if(!source.image&&Array.isArray(data?.images)){const asset=data.images.find(candidate=>candidate?.id===source.id);if(asset)source.image=asset.src||asset.data||'';}
+        return C.validateItem({id:source.id||C.uid(),title:source.title,kind:source.kind||'image',category:source.category||C.IMAGE_CATEGORIES[0],subcategories:source.subcategories||[],tool:source.tool||'',template:source.template,description:source.description||'',tags:Array.isArray(source.tags)?source.tags:[],image:source.image||'',imageRef:source.imageRef||'',ratio:source.ratio||0,fields:Array.isArray(source.fields)?source.fields:[],favorite:false,copies:0,createdAt:source.createdAt||Date.now(),updatedAt:source.updatedAt||Date.now(),sample:false});
+      }
+      function importPromptJSON(file){
+        if(!file)return;
+        const reader=new FileReader();
+        reader.onload=()=>{try{
+          const item=promptItemFromJSON(JSON.parse(reader.result));
+          editorItem=null;uploadImage=item.image||'';uploadRatio=item.ratio||0;fieldOverrides.clear();builderSeeds=(item.fields||[]).map(field=>({...field}));
+          const form=$('#item-form');form.elements.kind.value=item.kind;fillCategories(item.kind,item.category);form.elements.title.value=item.title;form.elements.subcategories.value=item.subcategories.join(', ');form.elements.tool.value=item.tool;form.elements.template.value=item.template;form.elements.description.value=item.description;form.elements.tags.value=item.tags.map(tag=>'#'+tag).join(' ');
+          $('#editor-title').textContent='프롬프트 추가';$('#form-submit').innerHTML=icon('plus')+'보관함에 추가';$('#form-error').hidden=true;autoFieldStatus('JSON 파일을 불러왔습니다. 저장 전에 내용을 확인하세요.','success');refreshUpload();detectedFields();updateEditorPreview();editorDirty=true;
+        }catch(error){formError(error);}finally{fileInputReset('#import-prompt-json-file');}};
+        reader.onerror=()=>{formError(Error('JSON 파일을 읽지 못했습니다.'));fileInputReset('#import-prompt-json-file');};reader.readAsText(file);
+      }
+      function fileInputReset(selector){const input=$(selector);if(input)input.value='';}
+      function openEditor(item=null){editorItem=item?clone(item):null;editorDirty=false;uploadImage=item?.image||'';uploadRatio=item?.ratio||0;const form=$('#item-form');form.reset();resetBuilder();form.elements.kind.value=item?.kind||filter.kind;fillCategories(form.elements.kind.value,item?.category);for(const key of ['title','tool','template','description'])form.elements[key].value=item?.[key]||'';form.elements.subcategories.value=item?.subcategories.join(', ')||'';form.elements.tags.value=item?.tags.map(t=>'#'+t).join(' ')||'';autoFieldStatus('프롬프트를 붙여 넣으면 자동 분석합니다.');updateEditorPreview();$('#editor-title').textContent=item?'프롬프트 수정':'프롬프트 추가';$('#form-submit').innerHTML=icon(item?'check':'plus')+(item?'수정 내용 저장':'보관함에 추가');$('#form-error').hidden=true;refreshUpload();detectedFields();$('#editor').showModal();}
       async function closeEditor(){if(editorDirty&&!(await confirmAction('입력 중인 내용이 있습니다. 저장하지 않고 닫을까요?','닫기')))return;$('#editor').close();editorDirty=false;}
       function refreshUpload(){$('#upload-preview').hidden=!uploadImage;if(uploadImage)$('#upload-preview').src=imageSrc(uploadImage);else $('#upload-preview').removeAttribute('src');$('#upload-label').hidden=!!uploadImage;$('#remove-upload').hidden=!uploadImage;}
       const fieldOverrides=new Map();
@@ -553,19 +573,6 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
             return '<button type="button" class="detect-chip '+(req?'req':'opt')+'" data-field-key="'+e(field.key)+'" aria-pressed="'+req+'" title="눌러서 '+(req?'선택':'필수')+'으로 바꾸기"><i>'+(req?'필수':'선택')+'</i>'+e(field.key)+'</button>';}).join('')+'</span>';
       }
       function autoFieldStatus(message,tone=''){$('#auto-field-status').textContent=message;$('#auto-field-status').dataset.tone=tone;}
-      function applyPromptClassification(sourceOverride=''){
-        const source=String(sourceOverride||$('#form-template').value);if(!source.trim())return;
-        const result=C.analyzePrompt(source),form=$('#item-form'),changed=[];const values={title:result.title,description:result.description,tags:result.tags.map(tag=>'#'+tag).join(' '),tool:result.tool,category:result.category,subcategories:result.subcategories.join(', ')};
-        const canFill=key=>!form.elements[key].value.trim()||autoMeta[key];
-        const apply=(key,value)=>{if(!value||!canFill(key))return;form.elements[key].value=value;autoMeta[key]=true;changed.push(key);};
-        apply('title',result.title);apply('description',result.description);apply('tags',values.tags);apply('tool',result.tool);
-        if(form.elements.kind.value==='image'){
-          if(canFill('category')){fillCategories(form.elements.kind.value,result.category);form.elements.category.value=result.category;autoMeta.category=true;changed.push('category');}
-          if(result.subcategories.length&&canFill('subcategories')){form.elements.subcategories.value=values.subcategories;autoMeta.subcategories=true;changed.push('subcategories');}
-          fillSubOptions();
-        }
-        if(changed.length){editorDirty=true;autoFieldStatus('자동 분류 완료 · 제목·주요 요소·해시태그·AI 모델'+(result.category?'·카테고리':'')+'를 채웠습니다. 저장 전에 확인해주세요.','success');}
-      }
       function autoCreateFields(fromPaste=false){
         const textarea=$('#form-template'),source=textarea.value,result=C.autoFields(source);
         if(!source.trim()){autoFieldStatus('먼저 프롬프트를 붙여 넣어주세요.','warning');return;}
@@ -580,7 +587,6 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
         else if(count)autoFieldStatus('이미 입력칸 '+count+'개가 준비되어 있습니다.'+split,'success');
         else autoFieldStatus('자동으로 찾은 항목이 없습니다. ‘항목명: 값’ 또는 [값] 형식으로 작성해보세요.','warning');
         if(fromPaste&&result.skipped)autoFieldStatus('입력칸은 최대 40개까지 만들 수 있어 나머지 항목은 그대로 두었습니다.','warning');
-        return source;
       }
 
       const BUILDER_GROUPS=[
@@ -774,7 +780,7 @@ const visible=C.filter(state.items,{...filter,imageMode});$('#loading').hidden=t
       $('#detail-body').addEventListener('mouseup',ev=>{const box=ev.target;if(box.tagName==='TEXTAREA'&&box.dataset.field!==undefined&&box.style.height&&Math.abs(parseFloat(box.style.height)-box.getBoundingClientRect().height)>2)box.dataset.resized='1';},true);
       $('#detail-body').addEventListener('change',ev=>{if(ev.target.id==='detail-image-file')registerDetailImage(ev.target.files[0],ev.target);});
       $('#detected-fields').addEventListener('click',ev=>{const chip=ev.target.closest('[data-field-key]');if(!chip)return;const key=chip.dataset.fieldKey,field=editorFields().find(f=>f.key===key);fieldOverrides.set(key,!C.fieldRequired(field||{key}));editorDirty=true;detectedFields();});
-      $('#item-form').addEventListener('input',ev=>{if(ev.target.name&&Object.prototype.hasOwnProperty.call(autoMeta,ev.target.name))autoMeta[ev.target.name]=false;editorDirty=true;});$('#form-category').addEventListener('change',()=>{autoMeta.category=false;autoMeta.subcategories=false;fillSubOptions();});$('#form-template').addEventListener('input',()=>{builderOwned=false;detectedFields();updateEditorPreview();});$('#form-template').addEventListener('paste',ev=>{const pasted=ev.clipboardData?.getData('text/plain')||'';requestAnimationFrame(()=>{const source=autoCreateFields(true)||pasted;applyPromptClassification(source);});});$('#auto-fields').addEventListener('click',()=>autoCreateFields(false));
+      $('#item-form').addEventListener('input',()=>editorDirty=true);$('#form-category').addEventListener('change',fillSubOptions);$('#form-template').addEventListener('input',()=>{builderOwned=false;detectedFields();updateEditorPreview();});$('#form-template').addEventListener('paste',()=>requestAnimationFrame(()=>autoCreateFields(true)));$('#auto-fields').addEventListener('click',()=>autoCreateFields(false));$('#import-prompt-json').addEventListener('click',()=>$('#import-prompt-json-file').click());$('#import-prompt-json-file').addEventListener('change',ev=>importPromptJSON(ev.target.files[0]));
       $('#upload-file').addEventListener('change',async ev=>{try{await readImage(ev.target.files[0]);$('#form-error').hidden=true;}catch(error){formError(error);}});$('#remove-upload').addEventListener('click',()=>{uploadImage='';uploadRatio=0;$('#upload-file').value='';editorDirty=true;refreshUpload();});
       ['dragenter','dragover'].forEach(type=>$('#upload-drop').addEventListener(type,ev=>{ev.preventDefault();$('#upload-drop').classList.add('dragging');}));['dragleave','drop'].forEach(type=>$('#upload-drop').addEventListener(type,ev=>{ev.preventDefault();$('#upload-drop').classList.remove('dragging');}));$('#upload-drop').addEventListener('drop',async ev=>{try{await readImage(ev.dataTransfer.files[0]);}catch(error){formError(error);}});
       $('#item-form').addEventListener('submit',async ev=>{ev.preventDefault();if(!requireAdmin())return;const button=$('#form-submit');button.disabled=true;$('#form-error').hidden=true;try{const f=ev.target.elements;const now=Date.now(),storedImage=await stashImage(uploadImage),imageChanged=Boolean(storedImage)&&storedImage!==(editorItem?.image||'');const item=C.validateItem({id:editorItem?.id||C.uid(),title:f.title.value.trim(),kind:f.kind.value,category:f.category.value,subcategories:C.subcategories(f.subcategories.value),tool:f.tool.value.trim(),template:f.template.value.trim(),description:f.description.value.trim(),tags:C.tags(f.tags.value),image:storedImage,ratio:uploadRatio||editorItem?.ratio||0,fields:editorFields(),favorite:editorItem?.favorite??false,copies:editorItem?.copies??0,createdAt:editorItem?.createdAt??now,updatedAt:now,imageAddedAt:storedImage?(imageChanged?now:(editorItem?.imageAddedAt||0)):0,sample:editorItem?.sample??false});await commit(items=>{if(editorItem)return items.map(i=>i.id===item.id?{...item,favorite:i.favorite,copies:i.copies}:i);if(items.length>=1000)throw Error('최대 1,000개까지 보관할 수 있습니다.');return [...items,item];});editorDirty=false;$('#editor').close();if(active?.id===item.id){active.dirty=false;await openDetail(item.id);}filter.kind=item.kind;filter.imageMode=item.image?'registered':'missing';filter.category='전체';filter.subcategory='전체';filter.query='';filter.saved=false;$('#search').value='';render();toast(editorItem?'수정 내용을 저장했습니다.':'프롬프트를 추가했습니다.');}catch(error){formError(error);}finally{button.disabled=false;}});
